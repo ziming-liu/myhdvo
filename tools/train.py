@@ -4,18 +4,39 @@ import os
 import os.path as osp
 import time
 import warnings
+import multiprocessing as mp
 
 import mmcv
 import torch
 from mmcv import Config, DictAction
-from mmcv.runner import init_dist, set_random_seed
+from mmcv.runner import init_dist#, set_random_seed
 from mmcv.utils import get_git_hash
 
-from mmaction import __version__
-from mmaction.apis import train_model
-from mmaction.datasets import build_dataset
-from mmaction.models import build_model
-from mmaction.utils import collect_env, get_root_logger, register_module_hooks
+from zimingdepth import __version__
+from zimingdepth.apis import train_model
+from zimingdepth.datasets import build_dataset
+from zimingdepth.models import build_model
+from zimingdepth.utils import collect_env, get_root_logger, register_module_hooks
+import random
+import numpy as np
+
+
+def set_random_seed(seed, deterministic=False):
+    """Set random seed.
+    Args:
+        seed (int): Seed to be used.
+        deterministic (bool): Whether to set the deterministic option for
+            CUDNN backend, i.e., set `torch.backends.cudnn.deterministic`
+            to True and `torch.backends.cudnn.benchmark` to False.
+            Default: False.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    if deterministic:
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 
 def parse_args():
@@ -23,7 +44,7 @@ def parse_args():
     parser.add_argument('config', help='train config file path')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
     parser.add_argument(
-        '--resume-from', help='the checkpoint file to resume from')
+        '--resume_from', help='the checkpoint file to resume from')
     parser.add_argument(
         '--validate',
         action='store_true',
@@ -40,9 +61,10 @@ def parse_args():
         nargs='+',
         help='ids of gpus to use '
         '(only applicable to non-distributed training)')
-    parser.add_argument('--seed', type=int, default=None, help='random seed')
+    parser.add_argument('--seed', type=int, default=0, help='random seed')
     parser.add_argument(
         '--deterministic',
+        default=True,
         action='store_true',
         help='whether to set deterministic options for CUDNN backend.')
     parser.add_argument(
@@ -56,9 +78,9 @@ def parse_args():
     parser.add_argument(
         '--launcher',
         choices=['none', 'pytorch', 'slurm', 'mpi'],
-        default='none',
+        default='pytorch',
         help='job launcher')
-    parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument('--local-rank', type=int, default=0)
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -76,7 +98,11 @@ def main():
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
-
+    else:
+        torch.backends.cudnn.benchmark = False
+ 
+    #torch.set_float32_matmul_precision('high')
+    
     # work_dir is determined in this priority:
     # CLI > config file > default (base filename)
     if args.work_dir is not None:
@@ -88,11 +114,15 @@ def main():
                                 osp.splitext(osp.basename(args.config))[0])
     if args.resume_from is not None:
         cfg.resume_from = args.resume_from
-    if args.gpu_ids is not None:
+
+    if os.environ.get("LOCAL_RANK"):
+        cfg.gpu_ids = [int(os.environ["LOCAL_RANK"])]
+    elif args.gpu_ids is not None:
         cfg.gpu_ids = args.gpu_ids
     else:
         cfg.gpu_ids = range(1) if args.gpus is None else range(args.gpus)
-
+    print("gpu ids",cfg.gpu_ids)
+    print("address , port ",os.environ["MASTER_ADDR"],os.environ["MASTER_PORT"])
     # init distributed env first, since logger depends on the dist info.
     if args.launcher == 'none':
         distributed = False
@@ -102,6 +132,7 @@ def main():
 
     # The flag is used to determine whether it is omnisource training
     cfg.setdefault('omnisource', False)
+    cfg.setdefault('minibatch', False)
 
     # The flag is used to register module's hooks
     cfg.setdefault('module_hooks', [])
@@ -109,7 +140,7 @@ def main():
     # create work_dir
     mmcv.mkdir_or_exist(osp.abspath(cfg.work_dir))
     # dump config
-    cfg.dump(osp.join(cfg.work_dir, osp.basename(args.config)))
+    #cfg.dump(osp.join(cfg.work_dir, osp.basename(args.config)))
     # init logger before other steps
     timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
     log_file = osp.join(cfg.work_dir, f'{timestamp}.log')
@@ -128,7 +159,7 @@ def main():
 
     # log some basic info
     logger.info(f'Distributed training: {distributed}')
-    logger.info(f'Config: {cfg.text}')
+    logger.info(f'Config: {cfg.pretty_text}')
 
     # set random seeds
     if args.seed is not None:
@@ -144,8 +175,15 @@ def main():
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
-
-    register_module_hooks(model.backbone, cfg.module_hooks)
+    #print("use sync batchnorm always")
+    #model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model,)
+    
+    #model = model.train() # add 6-27-2021
+    #model = model.cuda()
+    #try:
+    #    register_module_hooks(model.backbone, cfg.module_hooks)
+    #except:
+    #    register_module_hooks(model.depth_model, cfg.module_hooks)
 
     if cfg.omnisource:
         # If omnisource flag is set, cfg.data.train should be a list
@@ -169,7 +207,7 @@ def main():
         # checkpoints as meta data
         cfg.checkpoint_config.meta = dict(
             mmaction_version=__version__ + get_git_hash(digits=7),
-            config=cfg.text)
+            config=cfg.pretty_text)
 
     train_model(
         model,

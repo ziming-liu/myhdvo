@@ -7,7 +7,7 @@ def readme():
     return content
 
 
-version_file = 'mmaction/version.py'
+version_file = 'zimingdepth/version.py'
 
 
 def get_version():
@@ -96,15 +96,14 @@ def parse_requirements(fname='requirements.txt', with_version=True):
 
 if __name__ == '__main__':
     setup(
-        name='mmaction2',
+        name='zimingdepth',
         version=get_version(),
-        description='OpenMMLab Video Understanding Toolbox and Benchmark',
+        description='depth estimation Toolbox and Benchmark',
         long_description=readme(),
-        long_description_content_type='text/markdown',
-        maintainer='MMAction2 Authors',
-        maintainer_email='openmmlab@gmail.com',
+        maintainer='zimingdepth2 Authors',
+        maintainer_email='ziming.liu@inria.fr',
         packages=find_packages(exclude=('configs', 'tools', 'demo')),
-        keywords='computer vision, video understanding',
+        keywords='stereo, mono depth',
         classifiers=[
             'Development Status :: 4 - Beta',
             'License :: OSI Approved :: Apache Software License',
@@ -114,15 +113,4 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
         ],
-        url='https://github.com/open-mmlab/mmaction2',
-        license='Apache License 2.0',
-        setup_requires=parse_requirements('requirements/build.txt'),
-        tests_require=parse_requirements('requirements/tests.txt'),
-        install_requires=parse_requirements('requirements/runtime.txt'),
-        extras_require={
-            'all': parse_requirements('requirements.txt'),
-            'tests': parse_requirements('requirements/tests.txt'),
-            'build': parse_requirements('requirements/build.txt'),
-            'optional': parse_requirements('requirements/optional.txt'),
-        },
         zip_safe=False)

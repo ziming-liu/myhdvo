@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from mmcv.runner import load_checkpoint
 
-from mmaction.models import build_model
+from zimingdepth.models import build_model
 
 try:
     import onnx

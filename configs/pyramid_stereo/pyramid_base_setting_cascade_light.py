@@ -1,0 +1,185 @@
+'''
+Developer: ACENTAURI team, INRIA institute
+Author: Ziming Liu
+Date: 2023-03-10 00:57:00
+LastEditors: Ziming Liu
+LastEditTime: 2023-03-21 17:47:10
+'''
+import os.path as osp
+
+_base_ = [
+    '../_base_/datasets/scene_flow.py', '../_base_/default_runtime.py',
+    '../_base_/schedules/cascade_stereo_16epoch.py'
+]
+
+max_disp = 192
+iters = 4
+model=dict( 
+        type="PyramidStereoSceneFlow2_1MonosLeftLight",
+        in_channels=128,
+        mask_size=2,
+        search_ranges=[12,12,12],
+        iters=iters,
+        max_disp=max_disp,
+        backbone=dict(
+            type="ResNet2",
+            depth=18,
+            pretrained='torchvision://resnet18',
+            torchvision_pretrain=True,
+            in_channels=3,
+            num_stages=4,
+            out_indices=(0,1,2,3 ),
+            strides=(1,2,2,2  ),
+            dilations=(1,1,1,1),
+            style='pytorch',
+            frozen_stages=-1,
+            conv_cfg=dict(type='Conv2d'),
+            norm_cfg=dict(type='BN2d', requires_grad=True),
+            act_cfg=dict(type='ReLU', inplace=True),
+            norm_eval=False,
+            partial_bn=False,
+            with_cp=False
+        ),
+        neck=None,
+        mono_head=dict(type="MonoDispHead", 
+            max_depth=max_disp//4, 
+            in_channel=128, 
+            latent_channel=128, 
+            out_channel=1,
+            #losses=dict(
+            #    type="SiLogLoss",
+            #    name="mono",
+            #    weights=[1,],
+            #),
+            losses=dict(
+                type="DispL1Loss",
+                start_disp=0,
+                # the maximum disparity of disparity search range
+                max_disp=max_disp,
+                # weight for l1_loss with regard to other loss type
+                weight=1,
+                # weights for different scale loss
+                weights=(0.8 ** (2*iters),),
+                sparse=False,
+                set_range=True,
+                random_mask = False, 
+                random_mask_ratio = 0.5,
+                name="mono_l1_loss"
+            ),
+        ),
+        disp_head=dict(type="PyramidStereoHead2AdabinLight", # use disp attne conv layer
+            in_channels=[128], 
+            adabins="pixel-wise",
+            latent_dims=64,
+            ############################################
+            max_disp=max_disp,
+            ############################################
+            alpha=1., 
+            normalize=True,
+            losses=dict(
+                type="DispL1Loss",
+                start_disp=0,
+                # the maximum disparity of disparity search range
+                max_disp=max_disp,
+                # weight for l1_loss with regard to other loss type
+                weight=1,
+                # weights for different scale loss
+                weights=[  0.8 ** (2*iters+1 - i - 1) for i in range(1, 2*iters+1)],
+                sparse=False,
+                set_range=True,
+                random_mask = False, 
+                random_mask_ratio = 0.5,
+                name="stereo_l1_loss"
+            ),
+        )
+)
+
+batch_size = 8
+root2 = "/home/ziliu/mydata"
+
+data_root = osp.join(root2, 'sceneflow')
+annfile_root = osp.join(root2, "sceneflow/annotations")
+ 
+dataset_type = 'SceneFlowDataset'
+img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+crop_size=(256,512) # h, w
+train_pipeline = [
+    dict(type='LoadStereoImages', to_float32=False,
+                 color_type='color',
+                 file_client_args=dict(backend='disk'),
+                 imdecode_backend='cv2'),
+    dict(type='LoadAnnotations', views=["left"],  modalities=["disp"],),
+    dict(type='StereoRandomCrop2', crop_size=crop_size, zeros_disp_max_ratio=1, random_shift=False),
+    dict(type='StereoNormalize', **img_norm_cfg),
+    dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs', 'left_disps',    ]),
+    dict(type='Collect', keys=['left_imgs','right_imgs', 'left_disps',    ], meta_keys=[  ]),
+    dict(type='ToTensor', keys=['left_imgs','right_imgs', 'left_disps',    ])
+]
+val_pipeline = [
+   dict(type='LoadStereoImages', to_float32=False,
+                 color_type='color',
+                 file_client_args=dict(backend='disk'),
+                 imdecode_backend='cv2'),
+    dict(type='LoadAnnotations', views=["left"],  modalities=["disp"],),
+    dict(type='StereoRandomCrop2', crop_size=(512,960), zeros_disp_max_ratio=1, random_shift=False),
+    dict(type='StereoNormalize', **img_norm_cfg),
+    dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs', 'left_disps',    ]),
+    dict(type='Collect', keys=['left_imgs','right_imgs', 'left_disps',    ], meta_keys=[ ]),
+    dict(type='ToTensor', keys=['left_imgs','right_imgs', 'left_disps',    ])
+]
+test_pipeline = [
+    dict(type='LoadStereoImages', to_float32=False,
+                 color_type='color',
+                 file_client_args=dict(backend='disk'),
+                 imdecode_backend='cv2'),
+    dict(type='LoadAnnotations', views=["left"],  modalities=["disp"],),
+    dict(type='StereoTopLeftCrop', crop_size=[512,960], keys=["left_imgs", "right_imgs", "left_disps"]),
+    #dict(type='StereoRandomCrop2', crop_size=(512,960), zeros_disp_max_ratio=1, random_shift=False),
+    dict(type='StereoNormalize', **img_norm_cfg),
+    dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs', 'left_disps',    ]),
+    dict(type='Collect', keys=['left_imgs','right_imgs', 'left_disps',   ], meta_keys=[  ]),
+    dict(type='ToTensor', keys=['left_imgs','right_imgs',  'left_disps',  ])
+]
+
+data = dict(
+    sparse=True,
+    videos_per_gpu=batch_size,
+    workers_per_gpu=4,
+    train=dict(
+        type=dataset_type,
+        ann_file=osp.join(annfile_root, "finalpass_train_all.json"),
+        data_prefix=data_root,
+        eval_range=(1,192),
+        #end_id=100,
+        test_mode= False,
+        pipeline=train_pipeline),
+    val=dict(
+        type=dataset_type,
+        ann_file=osp.join(annfile_root, "finalpass_test.json"),
+        data_prefix=data_root,
+        eval_range=(1,192),
+        end_id=100,
+        test_mode= True,
+        pipeline=test_pipeline),
+    test=dict(
+        type=dataset_type,
+        ann_file=osp.join(annfile_root, "finalpass_test.json"),
+        eval_modality="disparity",
+        eval_range=(1,192),
+        #end_id=100,
+        data_prefix=data_root,
+        test_mode= True,
+        pipeline=test_pipeline))
+
+work_dir = "work_dirs/pyramid_base_setting_cascade_light"
+
+
+# optimizer
+optimizer = dict(type='Adam', lr=0.001, betas=(0.9, 0.999), )
+#optimizer_config = dict(type="GradientCumulativeOptimizerHook", cumulative_iters=2,  
+#                        grad_clip=None )
+
+dist_params = dict(backend='nccl')
+total_epochs=2
+
+find_unused_parameters = True
