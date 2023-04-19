@@ -2,7 +2,7 @@
 Author: Ziming Liu
 Date: 2021-09-07 16:15:34
 LastEditors: Ziming Liu
-LastEditTime: 2023-04-06 01:24:51
+LastEditTime: 2023-04-18 00:48:39
 Description: ...
 Dependent packages: don't need any extral dependency
 '''
@@ -35,3 +35,5 @@ from .resnet3d import ResNet3d
 from .resnet3d_slowfast import ResNet3dSlowFast,ResNet3dPathway
 from .resnet3d_slowonly import ResNet3dSlowOnly
  
+from .igev_feature_net import IGEVFeatureNet
+

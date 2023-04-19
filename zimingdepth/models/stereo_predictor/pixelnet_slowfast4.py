@@ -30,7 +30,7 @@ class PixelNetSlowFast4(nn.Module):
     """
     def __init__(self, backbone, losses, neck_dense, neck_sparse, alpha=1, normalize=True, sample_rate=4,
                   dense_channels=8, sparse_channels=64, max_disp=192, predict_format="depth", 
-                  img_pad_zeros=False,
+                  img_pad_zeros=False, fast_image_volume=False, 
                   pretrained=None, mask_left=False, **kwargs):
         """
         disp_l1_loss e.g.
@@ -59,6 +59,8 @@ class PixelNetSlowFast4(nn.Module):
         self.neck_dense = build_neck(neck_dense)
         self.neck_sparse = build_neck(neck_sparse)
         self.img_pad_zeros = img_pad_zeros
+        self.fast_image_volume = fast_image_volume
+        self.mask_template = None
 
         #self.classify_dense = nn.Conv3d(dense_channels, 1, kernel_size=1, padding=0)
         #self.classify_sparse = nn.Conv3d(sparse_channels, 1, kernel_size=1, padding=0)
@@ -195,6 +197,21 @@ class PixelNetSlowFast4(nn.Module):
 
         return image_volume
 
+    def build_image_volume_roll(self, leftImage, rightImage, max_disp=192, mask_left=False, img_pad_zeros=False):
+        #device = leftImage.device
+        #B, C, H, W = leftImage.shape
+        #D = max_disp
+        if self.mask_template is None:
+            B, C, H, W = leftImage.shape
+            self.mask_template = torch.ones(1, 2*3, max_disp, H, W, device=leftImage.device)
+            for i in range(max_disp):
+                self.mask_template[:, :, i, :, 0:i] = 0
+        image_volume = [torch.cat((leftImage, torch.roll(rightImage, i, dims=3)), dim=1) for i in range(max_disp)]
+        image_volume = torch.stack(image_volume, dim=2)
+        
+        if self.mask_template is not None:
+            image_volume = image_volume * self.mask_template
+        return image_volume
 
     def disp_predictor(self, final_costs):
         if not isinstance(final_costs, list) and not isinstance(final_costs, tuple):
@@ -233,7 +250,10 @@ class PixelNetSlowFast4(nn.Module):
         leftImage =  left_imgs.reshape((-1, self.channel,self.height,self.width))
         rightImage = right_imgs.reshape((-1, self.channel,self.height,self.width))
         # build image volume 
-        image_volume = self.build_image_volume(leftImage, rightImage)
+        if self.fast_image_volume:
+            image_volume = self.build_image_volume_roll(leftImage, rightImage)
+        else:
+            image_volume = self.build_image_volume(leftImage, rightImage)
         # sample 
         image_volume_sampled = F.interpolate(image_volume,scale_factor=(1/self.sample_rate,1,1), mode='nearest')
         feature_sparse, feature_dense = self.backbone(image_volume_sampled)
@@ -321,7 +341,10 @@ class PixelNetSlowFast4(nn.Module):
         rightImage = right_imgs.reshape((-1, self.channel,self.height,self.width))
                 # build image volume 
         #t0 = time.time()
-        image_volume = self.build_image_volume(leftImage, rightImage)
+        if self.fast_image_volume:
+            image_volume = self.build_image_volume_roll(leftImage, rightImage)
+        else:
+            image_volume = self.build_image_volume(leftImage, rightImage)
         #t1 = time.time()
         # sample 
         image_volume_sampled = F.interpolate(image_volume,scale_factor=(1/self.sample_rate,1,1), mode='nearest')

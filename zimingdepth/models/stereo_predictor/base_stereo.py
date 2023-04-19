@@ -1,8 +1,8 @@
 '''
 Author: Ziming Liu
 Date: 2022-07-08 00:04:48
-LastEditors: Ziming
-LastEditTime: 2023-02-10 16:34:10
+LastEditors: Ziming Liu
+LastEditTime: 2023-04-18 02:07:38
 Description: refer to https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark 
 Dependent packages: don't need any extral dependency
 '''
@@ -35,7 +35,7 @@ class BaseStereo(nn.Module):
     Base depth method. 
 
     """
-    def __init__(self, backbone, disp_head, neck=None, pretrained=None, shared_backbone=True, **kwargs):
+    def __init__(self, backbone, disp_head=None, neck=None, pretrained=None, shared_backbone=True, **kwargs):
         """
         disp_l1_loss e.g.
         [dict(
@@ -55,7 +55,8 @@ class BaseStereo(nn.Module):
         else:
             self.backbone1 = build_backbone(backbone)
             self.backbone2 = build_backbone(backbone)
-        self.disp_head = build_head(disp_head)
+        if disp_head is not None:
+            self.disp_head = build_head(disp_head)
         if neck is not None:
             self.neck = build_neck(neck)
         self.init_weights()

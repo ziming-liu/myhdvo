@@ -2,12 +2,13 @@
 Author: Ziming Liu
 Date: 2021-04-24 10:56:38
 LastEditors: Ziming Liu
-LastEditTime: 2023-04-08 01:07:31
+LastEditTime: 2023-04-18 01:40:40
 Description: ...
 Dependent packages: don't need any extral dependency
 '''
 from .base import BaseStereoMatching
 from .base2 import BaseStereoMatching2
+from .base_stereo import BaseStereo
 from .deep_stereo_matching import DeepStereoMatching
 from .psmnet import PSMNet
 from .mono2stereo_kitti import *
@@ -40,3 +41,5 @@ from .pixelnet_slowfast import PixelNetSlowFast
 from .pixelnet_slowfast2 import PixelNetSlowFast2
 from .pixelnet_slowfast3 import PixelNetSlowFast3
 from .pixelnet_slowfast4 import PixelNetSlowFast4
+
+from .igevstereo import IGEVStereo
