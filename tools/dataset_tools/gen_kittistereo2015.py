@@ -7,6 +7,32 @@ from tqdm import tqdm
 from mmcv import mkdir_or_exist
 import cv2
 
+def get_focal_length_baseline(calib_dir, cam):
+    with open(calib_dir, 'r') as f:
+        cam2cam = f.readlines()
+    P2_rect = cam2cam[26-1]
+    assert P2_rect[:9] == "P_rect_02"
+    P2_rect = np.array([float(P2_rect.strip().split()[-12:][i]) for i in range(12)  ])
+    P2_rect = P2_rect.reshape(3,4)
+
+    P3_rect = cam2cam[34-1]
+    assert P3_rect[:9] == "P_rect_03"
+    P3_rect = np.array([float(P3_rect.strip().split()[-12:][i]) for i in range(12)  ])
+    P3_rect = P3_rect.reshape(3,4)
+
+    # cam 2 is left of camera 0  -6cm
+    # cam 3 is to the right  +54cm
+    b2 = P2_rect[0,3] / -P2_rect[0,0]
+    b3 = P3_rect[0,3] / -P3_rect[0,0]
+    baseline = b3-b2
+    assert P2_rect[0,0] == P3_rect[0,0]
+    if cam==2:
+        focal_length = P2_rect[0,0]
+    elif cam==3:
+        focal_length = P3_rect[0,0]
+
+    return focal_length.astype(np.float64), baseline.astype(np.float64)
+
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
     '.png', '.PNG', '.ppm', '.PPM', '.bmp', '.BMP',
@@ -29,8 +55,15 @@ def getKITTI2015Metas(root, Type, mode, is_full=True, ):
     imageNames = [img for img in os.listdir(osp.join(root, Type, 'image_2')) if img.find('_10') > -1]
     imageNames.sort()
     smallest_h = 100000
+    calib_path = '/home/ziliu/mydata/kittistereo2015/calib/training/calib_cam_to_cam/'
     for imageName in imageNames:
+        id = imageName.split('_')[0]
+        calib_file = osp.join(calib_path, id + '.txt')
+        with open(calib_file, 'r') as f:
+            focal, baseline = get_focal_length_baseline(calib_file, 2)
         meta = dict(
+            focal=str(focal),
+            baseline=str(baseline),
             left_image_path=osp.join(
                 Type, 'image_2', imageName
             ),
@@ -76,6 +109,8 @@ def getKITTI2015Metas(root, Type, mode, is_full=True, ):
 def check(root, Metas):
     for meta in tqdm(Metas):
         for k, v in meta.items():
+            if k=='focal' or k=='baseline':
+                continue
             if v is not None:
                 assert osp.exists(osp.join(root, v)), 'trainMetas:{} not exists'.format(v)
                 assert is_image_file(v), 'trainMetas:{} is not a image file'.format(v)

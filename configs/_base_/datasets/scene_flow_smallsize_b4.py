@@ -3,7 +3,7 @@ Developer: ACENTAURI team, INRIA institute
 Author: Ziming Liu
 Date: 2023-03-09 17:09:34
 LastEditors: Ziming Liu
-LastEditTime: 2023-04-01 00:29:51
+LastEditTime: 2023-07-20 12:41:05
 '''
 import os.path as osp
 
@@ -66,7 +66,7 @@ test_pipeline = [
     #dict(type='StereoTopLeftCrop', crop_size=[512,960], keys=["left_imgs", "right_imgs", "left_disps"]),
     #dict(type='StereoRandomCrop2', crop_size=(512,960), zeros_disp_max_ratio=1, random_shift=False),
     dict(type='StereoNormalize', **img_norm_cfg),
-    dict(type='StereoResize', scale=(512,256), keep_ratio=False), # 960,544 original size
+    dict(type='StereoResize', scale=(960,544), keep_ratio=False), # 960,544 original size
     #dict(type='StereoPad', size=(576,960), pad_val=0, disp_pad_val=0),
     dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs', 'left_disps',  'right_disps',   ]),
     dict(type='Collect', keys=['left_imgs','right_imgs', 'left_disps',  'right_disps',   ], meta_keys=[ ]),
@@ -100,7 +100,7 @@ data = dict(
         ann_file=osp.join(annfile_root, "finalpass_test.json"),
         eval_modality="disparity",
         eval_range=(1,192),
-        end_id=100,
+        end_id=40,
         data_prefix=data_root,
         test_mode= True,
         pipeline=test_pipeline))

@@ -53,13 +53,14 @@ val_pipeline = [
                  file_client_args=dict(backend='disk'),
                  imdecode_backend='cv2'),
     dict(type='LoadAnnotations', views=["left", ],  modalities=["disp"],),
-    #dict(type='StereoResize', scale=(960,544), keep_ratio=False),
+    #dict(type='StereoCenterCrop', crop_size=(0.40810811,0.99189189,0.03594771, 0.96405229)),
+    #dict(type='StereoResize', scale=(512,320), keep_ratio=False),
     #dict(type='ThreeCrop', crop_size=256),
     #dict(type='Flip', flip_ratio=0),
     dict(type='StereoNormalize', **img_norm_cfg),
-    dict(type='StereoPad', size=(384,1280), pad_val=0, disp_pad_val=0), # 400,879
-    dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs', 'left_disps',   ]),
-    dict(type='Collect', keys=['left_imgs','right_imgs', 'left_disps',    ], meta_keys=[ ]),
+    dict(type='StereoPad', size=(384,1280), pad_val=0, disp_pad_val=0),
+    dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs',  'left_disps',   ]),
+    dict(type='Collect', keys=['left_imgs','right_imgs',  'left_disps',   ], meta_keys=[ ]),
     dict(type='ToTensor', keys=['left_imgs','right_imgs', 'left_disps',    ])
 ]
 test_pipeline = [
@@ -67,16 +68,16 @@ test_pipeline = [
                  color_type='color',
                  file_client_args=dict(backend='disk'),
                  imdecode_backend='cv2'),
-    #dict(type='LoadAnnotations', views=["left", ],  modalities=["disp"],),
+    dict(type='LoadAnnotations', views=["left", ],  modalities=["disp"],),
     #dict(type='StereoCenterCrop', crop_size=(0.40810811,0.99189189,0.03594771, 0.96405229)),
     #dict(type='StereoResize', scale=(512,320), keep_ratio=False),
     #dict(type='ThreeCrop', crop_size=256),
     #dict(type='Flip', flip_ratio=0),
     dict(type='StereoNormalize', **img_norm_cfg),
     dict(type='StereoPad', size=(384,1280), pad_val=0, disp_pad_val=0),
-    dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs',    ]),
-    dict(type='Collect', keys=['left_imgs','right_imgs',    ], meta_keys=[ ]),
-    dict(type='ToTensor', keys=['left_imgs','right_imgs',    ])
+    dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs',  'left_disps',   ]),
+    dict(type='Collect', keys=['left_imgs','right_imgs',  'left_disps',   ], meta_keys=[ ]),
+    dict(type='ToTensor', keys=['left_imgs','right_imgs', 'left_disps',    ])
 ]
 
 data = dict(
@@ -87,7 +88,7 @@ data = dict(
         type=dataset_type,
         ann_file=osp.join(annfile_root, "split_train.json"),
         data_prefix=data_root,
-        eval_modality="disparity",
+        eval_modality="disp",
         depth_scale_ratio=256,
         #end_id=10,
         test_mode= False,
@@ -97,16 +98,16 @@ data = dict(
         ann_file=osp.join(annfile_root, "split_eval.json"),
         #end_id=100,
         data_prefix=data_root,
-        eval_modality="disparity",
+        eval_modality="disp",
         depth_scale_ratio=256,
         test_mode= True,
         pipeline=val_pipeline),
     test=dict(
         type=dataset_type,
-        ann_file=osp.join(annfile_root, "full_test.json"),
+        ann_file=osp.join(annfile_root,"split_eval.json"), #"full_test.json"),
         #end_id=10,
         data_prefix=data_root,
-        eval_modality="disparity",
+        eval_modality="disp",
         depth_scale_ratio=256,
         test_mode= True,
         pipeline=test_pipeline))

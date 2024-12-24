@@ -3,11 +3,11 @@ Developer: ACENTAURI team, INRIA institute
 Author: Ziming Liu
 Date: 2023-03-09 17:09:34
 LastEditors: Ziming Liu
-LastEditTime: 2023-03-30 23:48:17
+LastEditTime: 2024-02-07 22:26:37
 '''
 import os.path as osp
 
-batch_size = 16
+batch_size = 2
 root2 = "/home/ziliu/mydata"
 
 data_root = osp.join(root2, 'sceneflow')
@@ -29,7 +29,7 @@ train_pipeline = [
     #                        scale_max=1.0,
     #                        seed=0,),
     dict(type='StereoResize', scale=(512,256), keep_ratio=False), # 960,544 original size
-    dict(type='StereoRandomCrop2', crop_size=crop_size, zeros_disp_max_ratio=1, random_shift=False),
+    #Adict(type='StereoRandomCrop2', crop_size=crop_size, zeros_disp_max_ratio=1, random_shift=False),
     dict(type='StereoNormalize', **img_norm_cfg),
     dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs', 'left_disps',      ]),
     dict(type='Collect', keys=['left_imgs','right_imgs', 'left_disps',     ], meta_keys=[  ]),

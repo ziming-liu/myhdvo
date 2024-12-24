@@ -3,7 +3,7 @@ Developer: ACENTAURI team, INRIA institute
 Author: Ziming Liu
 Date: 2023-03-12 18:29:53
 LastEditors: Ziming Liu
-LastEditTime: 2023-04-18 02:58:55
+LastEditTime: 2023-04-23 18:33:29
 '''
 
 
@@ -16,13 +16,13 @@ _base_ = [
 
 
 work_dir = "work_dirs/igevbase"
-
+#resume_from = "work_dirs/igevbase/iter_100000.pth"
 #resume_from = "work_dirs/crestereo_sceneflow/epoch_7.pth"
 #dist_params = dict(backend='gloo')
 
 # yapf:disable
 log_config = dict(
-    interval=50,
+    interval=5,
     hooks=[
         dict(type='TextLoggerHook', by_epoch=False),
         #dict(type='TensorboardLoggerHook')

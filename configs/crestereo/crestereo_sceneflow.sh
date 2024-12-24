@@ -3,7 +3,7 @@
  # @Author: Ziming Liu
  # @Date: 2022-05-09 01:06:59
  # @LastEditors: Ziming Liu
- # @LastEditTime: 2023-03-21 23:40:13
+ # @LastEditTime: 2023-05-07 17:26:09
  # @Description: ...
  # @Dependent packages: don't need any extral dependency
 ### 
@@ -26,9 +26,9 @@ source activate torch2
       --launcher pytorch  --validate  
 # Any arguments from the third one are captured by ${@:3}
 
-OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=3 --master_port=12200 \
+OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12200 \
   tools/test.py configs/crestereo/crestereo_sceneflow.py \
-   work_dirs/crestereo_sceneflow/epoch_16.pth   \
+   work_dirs/crestereo_sceneflow/epoch_11.pth   \
     --launcher pytorch  --eval  EPE 3PE D1
  
  

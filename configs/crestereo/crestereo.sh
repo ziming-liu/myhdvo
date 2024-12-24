@@ -31,4 +31,8 @@ OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=3 --master_
    work_dirs/crestereo_base/epoch_600.pth   \
     --launcher pytorch  --eval  EPE 3PE D1
  
- 
+
+OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=3 --master_port=12200 \
+  tools/test_flops_counter.py configs/crestereo/crestereo.py \
+   work_dirs/crestereo_base/epoch_600.pth   \
+    --launcher pytorch  --input_size 544,960

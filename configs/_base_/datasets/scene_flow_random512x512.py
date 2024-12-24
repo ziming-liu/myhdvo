@@ -3,7 +3,7 @@ Developer: ACENTAURI team, INRIA institute
 Author: Ziming Liu
 Date: 2023-03-09 17:09:34
 LastEditors: Ziming Liu
-LastEditTime: 2023-03-31 15:38:57
+LastEditTime: 2023-05-01 23:07:21
 '''
 import os.path as osp
 
@@ -15,7 +15,7 @@ annfile_root = osp.join(root2, "sceneflow/annotations")
  
 dataset_type = 'SceneFlowDataset'
 img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
-crop_size=(512,512) # h, w
+crop_size=(518,518) # h, w
 train_pipeline = [
     dict(type='LoadStereoImages', to_float32=False,
                  color_type='color',

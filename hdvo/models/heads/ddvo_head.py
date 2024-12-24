@@ -1,0 +1,170 @@
+'''
+Developer: ACENTAURI team, INRIA institute
+Author: Ziming Liu
+Date: 2023-07-06 14:09:51
+LastEditors: Ziming Liu
+LastEditTime: 2024-02-07 12:41:42
+'''
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torchvision
+from mmcv.runner import _load_checkpoint, load_checkpoint
+from mmcv.cnn import ConvModule, constant_init, kaiming_init
+from ...utils import get_root_logger
+from mmcv.runner import auto_fp16
+import warnings
+import torch.distributed as dist
+from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
+from ..builder import build_backbone, build_neck, build_disp_predictor,build_loss,build_head,build_visual_odometry
+
+from ..registry import HEADS
+
+from ..losses import DispL1Loss
+ 
+from ...core.visulization import vis_depth_tensor,vis_img_tensor
+from ..utils.inverse_warp_3d import inverse_warp_3d
+import time 
+from ..utils.temporal_warping import temporal_warp_c2r,  temporal_warp_r2c, temporal_warp_core
+from ..utils.stereo_warping import stereo_warp_r2l, stereo_warp_l2r
+import cv2
+
+#from ..visual_odometry.pose_transform import *
+
+ 
+# epsilon for testing whether a number is close to zero
+_EPS = torch.finfo(float).eps * 4.0
+
+# axis sequences for Euler angles
+_NEXT_AXIS = [1, 2, 0, 1]
+
+# map axes strings to/from tuples of inner axis, parity, repetition, frame
+_AXES2TUPLE = {
+    'sxyz': (0, 0, 0, 0), 'sxyx': (0, 0, 1, 0), 'sxzy': (0, 1, 0, 0),
+    'sxzx': (0, 1, 1, 0), 'syzx': (1, 0, 0, 0), 'syzy': (1, 0, 1, 0),
+    'syxz': (1, 1, 0, 0), 'syxy': (1, 1, 1, 0), 'szxy': (2, 0, 0, 0),
+    'szxz': (2, 0, 1, 0), 'szyx': (2, 1, 0, 0), 'szyz': (2, 1, 1, 0),
+    'rzyx': (0, 0, 0, 1), 'rxyx': (0, 0, 1, 1), 'ryzx': (0, 1, 0, 1),
+    'rxzx': (0, 1, 1, 1), 'rxzy': (1, 0, 0, 1), 'ryzy': (1, 0, 1, 1),
+    'rzxy': (1, 1, 0, 1), 'ryxy': (1, 1, 1, 1), 'ryxz': (2, 0, 0, 1),
+    'rzxz': (2, 0, 1, 1), 'rxyz': (2, 1, 0, 1), 'rzyz': (2, 1, 1, 1)}
+
+_TUPLE2AXES = dict((v, k) for k, v in _AXES2TUPLE.items())
+
+def euler_from_matrix(matrix, axes='szxy'):
+    try:
+        firstaxis, parity, repetition, frame = _AXES2TUPLE[axes.lower()]
+    except (AttributeError, KeyError):
+        raise ValueError("Invalid axes value")  # Add proper error handling
+
+    i = firstaxis
+    j = _NEXT_AXIS[i + parity]
+    k = _NEXT_AXIS[i - parity + 1]
+
+    #M = torch.tensor(matrix, dtype=torch.float64)[:3, :3]
+    M = matrix[:3, :3].type(torch.float64)
+    if repetition:
+        sy = torch.sqrt(M[i, j] * M[i, j] + M[i, k] * M[i, k])
+        if sy > _EPS:
+            ax = torch.atan2(M[i, j], M[i, k])
+            ay = torch.atan2(sy, M[i, i])
+            az = torch.atan2(M[j, i], -M[k, i])
+        else:
+            ax = torch.atan2(-M[j, k], M[j, j])
+            ay = torch.atan2(sy, M[i, i])
+            az = torch.tensor(0.0)
+    else:
+        cy = torch.sqrt(M[i, i] * M[i, i] + M[j, i] * M[j, i])
+        if cy > _EPS:
+            ax = torch.atan2(M[k, j], M[k, k])
+            ay = torch.atan2(-M[k, i], cy)
+            az = torch.atan2(M[j, i], M[i, i])
+        else:
+            ax = torch.atan2(-M[j, k], M[j, j])
+            ay = torch.atan2(-M[k, i], cy)
+            az = torch.tensor(0.0)
+
+    if parity:
+        ax, ay, az = -ax, -ay, -az
+    if frame:
+        ax, az = az, ax
+    return torch.FloatTensor([ax, ay, az]).type_as(matrix)
+
+ 
+    
+@HEADS.register_module()
+class PoseDDVOHead(nn.Module):
+    def __init__(self, 
+                 ddvo,
+                 photo_loss = None,
+                 struct_loss = None,
+                 loss_weights = [1, 1.25, 1.5, 1.75, 2.0],
+                 grid_sample_type="pytorch", 
+                 padding_mode="zeros",  ):
+        super(PoseDDVOHead, self).__init__()
+        self.loss_weights = loss_weights
+        self.grid_sample_type = grid_sample_type
+        self.padding_mode = padding_mode
+        if photo_loss is not None: 
+            self.photo_loss = build_loss(photo_loss)
+        else:
+            self.photo_loss = None
+        if struct_loss is not None:
+            self.struct_loss = build_loss(struct_loss)
+        else:
+            self.struct_loss = None
+        self.ddvo = build_visual_odometry(ddvo)
+        self.initpose = np.eye(4)
+          
+    
+    def forward(self, source_img, target_depth, sTt, K, target_img=None, target_mask=None, test_mode=False):
+        assert not isinstance(source_img, (list,tuple))
+        assert not isinstance(target_depth, (list,tuple))
+        assert not isinstance(target_img, (list,tuple))
+
+        if not test_mode:
+            return self.forward_train(source_img, target_depth, sTt, K, target_img, target_mask)
+        else:
+            return self.forward_test(source_img, target_depth, sTt, K, target_img, target_mask)
+
+
+    def forward_train(self, source_img, target_depth, sTt, K, target_img, target_mask):
+        warped = temporal_warp_core(source_img, target_depth, sTt, K, torch.linalg.inv(K), gt_map=target_img)
+        valid_mask = (warped != 0).all(dim=1, keepdim=True).float().detach()
+        loss = self.loss(warped, target_img)
+        loss = {k: (v * valid_mask).mean() for k, v in loss.items()}
+        if target_mask is not None:
+            loss = {k: (v * target_mask).mean() for k, v in loss.items()}
+       
+        return loss
+    
+    def forward_test(self, source_img, target_depth, init_sTt, K, target_img, target_mask):
+        #self.ddvo.max_iters = 100 # this results a bug. change the max_iters in the ddvo, the next training iter will have the wrong max_iters
+        if target_mask is None:
+            target_mask = torch.ones_like(target_depth)
+        Ir, Zr, Ic,  K, imask , cTr = target_img, target_depth, source_img, K, target_mask, init_sTt
+
+        b,_,h,w = Ir.shape
+        est_poses = []
+        Ir, Ic = Ir.detach().permute(0,2,3,1).cpu().numpy(), Ic.detach().permute(0,2,3,1).cpu().numpy()
+        Zr = Zr.detach().cpu().numpy()
+        target_mask = target_mask.detach().cpu().numpy()
+         
+        for idx in range(b):
+            est_pose = self.ddvo.get_pose(cv2.cvtColor(Ir[idx], cv2.COLOR_RGB2GRAY).reshape(h,w), Zr[idx].reshape(h,w), cv2.cvtColor(Ic[idx], cv2.COLOR_RGB2GRAY).reshape(h,w),\
+                                        target_mask[idx].reshape(h,w), self.initpose, K.detach().cpu().numpy())
+            self.initpose = est_pose.copy()
+            est_poses.append(torch.FloatTensor(est_pose).to(source_img.device))
+        est_poses = torch.stack(est_poses)
+        return est_poses
+
+    def loss(self, warped_ref, ref_img):
+        loss = {}
+        ddvo_photoloss = self.photo_loss(warped_ref, ref_img)
+        loss[f"ddvo_photoloss"] = ddvo_photoloss #* (warped_ref[i]!=0).float().detach()
+        ddvo_structloss = self.struct_loss(warped_ref, ref_img)
+        loss[f"ddvo_structloss"] = ddvo_structloss #* (warped_ref[i]!=0).float().detach()
+        
+        return loss 

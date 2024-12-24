@@ -29,10 +29,10 @@ from mmcv.runner import get_dist_info, init_dist, load_checkpoint
 from mmcv.runner.fp16_utils import wrap_fp16_model
 from mmcv.runner import LogBuffer
 
-from zimingdepth.apis import multi_gpu_test, single_gpu_test
-from zimingdepth.datasets import build_dataloader, build_dataset
-from zimingdepth.models import build_model
-from zimingdepth.utils import collect_env, get_root_logger, register_module_hooks
+from hdvo.apis import multi_gpu_test, single_gpu_test
+from hdvo.datasets import build_dataloader, build_dataset
+from hdvo.models import build_model
+from hdvo.utils import collect_env, get_root_logger, register_module_hooks
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -363,9 +363,9 @@ def main():
             outputs = multi_gpu_test(model, data_loader, args.tmpdir,
                                     args.gpu_collect)
             try:
-                print("direct vo running avg time: {} over {} frames ".format(model.direct_vo.directvo_timer["avg_time"], model.direct_vo.directvo_timer["frames"]))
+                print("\n #### direct vo running sum_time:{}, avg time: {} over {} frames ".format(model.module.directvo_timer["sum_time"], model.module.directvo_timer["avg_time"], model.module.directvo_timer["frames"]))
             except:
-                print(" there is no timer in model directvo module.")
+                print("no directvo_timer")
     rank, _ = get_dist_info()
     
     num_outputs = len(outputs)
@@ -431,7 +431,7 @@ def main():
         from outputs_proc.save_load_mask import save_mask_maps
         
         # save pred masks (multi)
-        print("output2 pred_mask: ",len(outputs[3]) )
+        #print("output2 pred_mask: ",len(outputs[3]) )
         if len(outputs[2])>0: # pred mask is not [] 
             if outputs[2][0].shape[0]==6: # visualize all masks
                 pred_mask_types = ["left_temporal_multi_masks","left_homo_mask",
@@ -451,7 +451,7 @@ def main():
                     args.checkpoint.split('/')[-1].split('.')[0], first_frame_id=0, iftransparent=args.iftransparent )
             print("#done")
         # save GT mask (for vkitti2)
-        print("output3 GTmask: ",len(outputs[3]) )
+        #print("output3 GTmask: ",len(outputs[3]) )
         if len(outputs[3])>0: # pred mask is not [] 
             gt_mask_types =  ["gt_left_temporal_multi_masks","gt_right_temporal_multi_masks", ]
             for mask_idx in range(len(outputs[3][0])):
@@ -466,8 +466,9 @@ def main():
          
         eval_config["cfg"] = cfg.copy()
         if not args.no_gt:
+            print("evaluate !")
             eval_results = dataset.evaluate(outputs, outputs[1] if len(outputs[1])>1 else None,
-                                                        metrics=args.eval,logger=logger )
+                                                        metrics=args.eval,logger=logger, eval_config=eval_config )
         #for name, val in eval_results.items():
         #    logger.info(f'{name}: {val:.04f}')
  

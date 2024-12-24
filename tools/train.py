@@ -12,11 +12,11 @@ from mmcv import Config, DictAction
 from mmcv.runner import init_dist#, set_random_seed
 from mmcv.utils import get_git_hash
 
-from zimingdepth import __version__
-from zimingdepth.apis import train_model
-from zimingdepth.datasets import build_dataset
-from zimingdepth.models import build_model
-from zimingdepth.utils import collect_env, get_root_logger, register_module_hooks
+from hdvo import __version__
+from hdvo.apis import train_model
+from hdvo.datasets import build_dataset
+from hdvo.models import build_model
+from hdvo.utils import collect_env, get_root_logger, register_module_hooks
 import random
 import numpy as np
 

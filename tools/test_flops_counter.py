@@ -12,9 +12,9 @@ import random
 import cv2
 import matplotlib as mp
 import sys
-sys.path.append("../")
-from kitti_odom_eval.kitti_odometry import KittiEvalOdom
-from KITTI_odometry_evaluation_tool.evaluation import kittiOdomEval
+#sys.path.append("../")
+#from kitti_odom_eval.kitti_odometry import KittiEvalOdom
+#from KITTI_odometry_evaluation_tool.evaluation import kittiOdomEval
 mp.use("pdf")
 
 #cmap = plt.cm.viridis
@@ -34,7 +34,7 @@ from zimingdepth.apis import multi_gpu_test, single_gpu_test
 from zimingdepth.datasets import build_dataloader, build_dataset
 from zimingdepth.models import build_model
 from zimingdepth.utils import collect_env, get_root_logger, register_module_hooks
-from eval_odometry import dr_api,dr_api2
+#from eval_odometry import dr_api,dr_api2
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -342,7 +342,7 @@ def main():
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
 
-    from ptflops import get_model_complexity_info
+    #from ptflops import get_model_complexity_info
     with torch.cuda.device(0):
         model = model.cuda()
         #model.eval()
@@ -376,7 +376,7 @@ def main():
         input_tensor = torch.ones(1, 3, int(args.input_size.split(',')[0]), int(args.input_size.split(',')[1])).float().cuda()
         print(input_tensor.device)
         left_depth =  torch.ones(1, 1, int(args.input_size.split(',')[0]), int(args.input_size.split(',')[1])).float().cuda()
-        ks = {   "return_loss":False, "left_depths": left_depth,  "focal": torch.FloatTensor([277]).cuda(), "baseline":torch.FloatTensor([0.5]).cuda() }
+        ks = {   "return_loss":False, "left_depths": left_depth,  "left_disps": left_depth,  "focal": torch.FloatTensor([277]).cuda(), "baseline":torch.FloatTensor([0.5]).cuda() }
         
         summary(model, input_tensor, input_tensor, **ks)
 

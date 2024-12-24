@@ -1,5 +1,6 @@
 from setuptools import find_packages, setup
-
+from torch.utils.cpp_extension import BuildExtension, CppExtension,CUDAExtension
+import os
 
 def readme():
     with open('README.md', encoding='utf-8') as f:
@@ -7,7 +8,7 @@ def readme():
     return content
 
 
-version_file = 'zimingdepth/version.py'
+version_file = 'hdvo/version.py'
 
 
 def get_version():
@@ -95,14 +96,38 @@ def parse_requirements(fname='requirements.txt', with_version=True):
 
 
 if __name__ == '__main__':
+    include_dirs = os.path.dirname(os.path.abspath(__file__))
+
     setup(
-        name='zimingdepth',
+        name='hdvo',
         version=get_version(),
         description='depth estimation Toolbox and Benchmark',
         long_description=readme(),
-        maintainer='zimingdepth2 Authors',
+        maintainer='hdvo2 Authors',
         maintainer_email='ziming.liu@inria.fr',
         packages=find_packages(exclude=('configs', 'tools', 'demo')),
+        ext_modules=[
+        #CUDAExtension('grad2_grid_sample', [
+        #    os.path.join(include_dirs, 'hdvo/models/utils/cuda_gridsample_grad2/cuda_gridsample_grad2/gridsample_cuda.cpp'),    
+        #    os.path.join(include_dirs, 'hdvo/models/utils/cuda_gridsample_grad2/cuda_gridsample_grad2/gridsample_kernel.cu'),
+        #    ]),
+        #CUDAExtension('esm_grid_sample', [
+        #    os.path.join(include_dirs, 'hdvo/models/utils/esm_grid_sample/esm_grid_sample/esm_grid_sample_cuda.cpp'),    
+        #    os.path.join(include_dirs, 'hdvo/models/utils/esm_grid_sample/esm_grid_sample/esm_grid_sample_kernel.cu'),
+        #    ]),
+        #CUDAExtension('fc_grid_sample', [
+        #    os.path.join(include_dirs, 'hdvo/models/utils/esm_grid_sample/fc_grid_sample/fc_grid_sample_cuda.cpp'),    
+        #    os.path.join(include_dirs, 'hdvo/models/utils/esm_grid_sample/fc_grid_sample/fc_grid_sample_kernel.cu'),
+        #    ]),
+        #CUDAExtension('ic_grid_sample', [
+        #    os.path.join(include_dirs, 'hdvo/models/utils/esm_grid_sample/ic_grid_sample/ic_grid_sample_cuda.cpp'),    
+        #    os.path.join(include_dirs, 'hdvo/models/utils/esm_grid_sample/ic_grid_sample/ic_grid_sample_kernel.cu'),
+        #    ]),
+        ],
+        
+        cmdclass={
+            'build_ext': BuildExtension
+        },
         keywords='stereo, mono depth',
         classifiers=[
             'Development Status :: 4 - Beta',

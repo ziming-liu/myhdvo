@@ -3,7 +3,7 @@ Developer: ACENTAURI team, INRIA institute
 Author: Ziming Liu
 Date: 2023-03-10 00:57:00
 LastEditors: Ziming Liu
-LastEditTime: 2023-03-10 02:32:04
+LastEditTime: 2023-09-14 01:59:38
 '''
 import os.path as osp
 
@@ -67,6 +67,9 @@ test_pipeline = [
     dict(type='StereoTopLeftCrop', crop_size=[512,960], keys=["left_imgs", "right_imgs", "left_disps"]),
     #dict(type='StereoRandomCrop2', crop_size=(512,960), zeros_disp_max_ratio=1, random_shift=False),
     dict(type='StereoNormalize', **img_norm_cfg),
+            dict(type='StereoResize', scale=(512,256), keep_ratio=False), # 960,544 original size
+
+    #dict(type='StereoPad', size=(544,960), pad_val=0, disp_pad_val=0),
     dict(type='StereoFormatShape', input_format='NCHW', keys=['left_imgs','right_imgs', 'left_disps',    ]),
     dict(type='Collect', keys=['left_imgs','right_imgs', 'left_disps',   ], meta_keys=[  ]),
     dict(type='ToTensor', keys=['left_imgs','right_imgs',  'left_disps',  ])
