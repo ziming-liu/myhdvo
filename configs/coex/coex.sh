@@ -3,7 +3,7 @@
  # @Author: Ziming Liu
  # @Date: 2022-05-09 01:06:59
  # @LastEditors: Ziming Liu
- # @LastEditTime: 2023-07-19 11:39:03
+ # @LastEditTime: 2024-12-24 23:51:03
  # @Description: ...
  # @Dependent packages: don't need any extral dependency
 ### 
@@ -28,12 +28,12 @@ source activate torch2
 
 OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12200 \
   tools/test.py configs/coex/coex.py \
-   work_dirs/coex/iter_48000.pth   \
+   /home/ziliu/zimingdepth_torch2/work_dirs/coex/iter_48000.pth   \
     --launcher pytorch  --eval  EPE 3PE D1 N_DISPS_EPE #--save_depth
 
 OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12200 \
   tools/test_flops_counter.py configs/coex/coex.py \
-   work_dirs/coex/iter_10.pth   \
+   /home/ziliu/zimingdepth_torch2/work_dirs/coex/iter_10.pth   \
     --launcher pytorch --input_size 544,960
  
  
