@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG -std=c99 -pedantic -fPIC -Wall -fvisibility=hidden -s -O3 -msse4.2 -fopenmp   CMakeFiles/rox_example_vvs_se3_so3z_so3z.dir/examples/rox_example_vvs_se3_so3z_so3z.c.o  -o rox_example_vvs_se3_so3z_so3z -Wl,-rpath,/home/ziliu/openrox/cmake libopenrox.so -lm -lpthread -pthread 

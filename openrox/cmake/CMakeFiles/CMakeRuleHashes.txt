@@ -1,0 +1,2 @@
+# Hashes of file build rules.
+1817ba0a2bce5ffc0eaafa508f7ec732 CMakeFiles/openrox_user_manual

@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG -std=c99 -pedantic -fPIC -Wall -fvisibility=hidden -s -O3 -msse4.2 -fopenmp   CMakeFiles/rox_example_odometry_single_plane_photoframe.dir/examples/rox_example_odometry_single_plane_photoframe.c.o  -o rox_example_odometry_single_plane_photoframe -Wl,-rpath,/home/ziliu/openrox/cmake libopenrox.so -lm -lpthread -pthread 
