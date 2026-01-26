@@ -161,6 +161,41 @@ def parse_args():
         action='store_true',
         help=" if to save output .pkl for testing"
     )
+    parser.add_argument(
+        '--fp16',
+        action='store_true',
+        help='Enable FP16 mixed precision inference for faster speed'
+    )
+    parser.add_argument(
+        '--compile',
+        action='store_true',
+        help='Enable torch.compile() for additional speedup (requires PyTorch 2.0+)'
+    )
+    parser.add_argument(
+        '--compile-mode',
+        type=str,
+        default='default',
+        choices=['default', 'reduce-overhead', 'max-autotune'],
+        help='torch.compile mode: default, reduce-overhead, or max-autotune'
+    )
+    parser.add_argument(
+        '--use-onnx',
+        action='store_true',
+        help='Use ONNX model for depth inference (requires ONNX model export)'
+    )
+    parser.add_argument(
+        '--onnx-model',
+        type=str,
+        default='work_dirs/onnx_models/depth_net.onnx',
+        help='Path to ONNX model file'
+    )
+    parser.add_argument(
+        '--onnx-provider',
+        type=str,
+        default='TensorrtExecutionProvider',
+        choices=['CUDAExecutionProvider', 'TensorrtExecutionProvider', 'CPUExecutionProvider'],
+        help='ONNX Runtime execution provider'
+    )
     parser.add_argument('--local_rank', type=int, default=0)
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
@@ -246,7 +281,11 @@ def main():
     print(cfg.data.test)
     if args.test_range is not None:   
         logger.info("# update the test range to -{}-  ".format(str(args.test_range)))
-        cfg.data.test.test_range = (int(args.test_range.split(',')[0]), int(args.test_range.split(',')[1]))
+        # Support both colon (:) and comma (,) as separator
+        if ':' in args.test_range:
+            cfg.data.test.test_range = (int(args.test_range.split(':')[0]), int(args.test_range.split(':')[1]))
+        else:
+            cfg.data.test.test_range = (int(args.test_range.split(',')[0]), int(args.test_range.split(',')[1]))
     # Load output_config from cfg
     output_config = cfg.get('output_config', {})
     if args.out:
@@ -337,6 +376,41 @@ def main():
     
     #register_module_hooks(model.backbone, cfg.module_hooks)
 
+    # Initialize ONNX session if requested
+    onnx_session = None
+    if args.use_onnx:
+        import onnxruntime as ort
+        
+        # Suppress ONNX Runtime warnings
+        ort.set_default_logger_severity(3)  # 0:Verbose, 1:Info, 2:Warning, 3:Error, 4:Fatal
+        
+        print(f"## Loading ONNX model: {args.onnx_model}")
+        print(f"## Using provider: {args.onnx_provider}")
+        
+        # Setup execution providers
+        providers = [args.onnx_provider]
+        if args.onnx_provider == 'TensorrtExecutionProvider':
+            providers = [
+                ('TensorrtExecutionProvider', {
+                    'trt_fp16_enable': args.fp16,
+                    'trt_engine_cache_enable': True,
+                    'trt_engine_cache_path': 'work_dirs/trt_cache',
+                }),
+                'CUDAExecutionProvider',
+                'CPUExecutionProvider'
+            ]
+        elif args.onnx_provider == 'CUDAExecutionProvider':
+            providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+        
+        onnx_session = ort.InferenceSession(args.onnx_model, providers=providers)
+        print(f"## ONNX session created with providers: {onnx_session.get_providers()}")
+        
+        # Store ONNX session in model for access during inference
+        model.onnx_session = onnx_session
+        model.use_onnx = True
+    else:
+        model.use_onnx = False
+
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
         wrap_fp16_model(model)
@@ -348,6 +422,45 @@ def main():
         
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
+    
+    # Move model to GPU first before any optimization
+    if not distributed:
+        model = model.cuda()
+    
+    # Apply FP16 conversion if requested
+    if args.fp16:
+        print("## Converting model to FP16 for faster inference")
+        model = model.half()
+    
+    # Apply torch.compile/JIT optimization if requested
+    if args.compile:
+        print(f"## Compiling model with JIT optimization...")
+        # Use torch.jit.script for better compatibility on Jetson
+        # torch.compile with inductor backend requires triton which may not be available
+        try:
+            import torch._dynamo
+            if hasattr(torch, 'compile'):
+                print("   Using torch.compile (experimental on Jetson)...")
+                model.depth_net = torch.compile(
+                    model.depth_net,
+                    mode=args.compile_mode,
+                    backend='eager'  # Use eager backend for better compatibility
+                )
+                print("## Model compilation complete (eager mode)")
+            else:
+                raise ImportError("torch.compile not available")
+        except (ImportError, RuntimeError, AttributeError) as e:
+            print(f"   torch.compile not available ({e}), falling back to JIT trace...")
+            # Fallback to JIT tracing which is more stable
+            model_dtype = next(model.parameters()).dtype
+            dummy_left = torch.randn(1, 3, 320, 1024, device='cuda', dtype=model_dtype)
+            dummy_right = torch.randn(1, 3, 320, 1024, device='cuda', dtype=model_dtype)
+            
+            print("   Tracing model with JIT (this may take a moment)...")
+            with torch.no_grad():
+                model.depth_net.eval()
+                model.depth_net = torch.jit.trace(model.depth_net, (dummy_left, dummy_right))
+            print("## Model JIT optimization complete")
  
     if args.output_pkl is not None:
         outputs = mmcv.load(args.output_pkl)

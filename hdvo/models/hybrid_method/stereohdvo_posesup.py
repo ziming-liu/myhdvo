@@ -165,7 +165,26 @@ class StereoHDVOPosesup(HDVO):
                    [],[], # mask 
                     [],[],] # pose
         if self.depth_net is not None:
-            disps = self.depth_net(ref_left_imgs, ref_right_imgs) # only decode the first frame's depth
+            # Use ONNX inference if available
+            if hasattr(self, 'use_onnx') and self.use_onnx and hasattr(self, 'onnx_session'):
+                import numpy as np
+                # Prepare inputs for ONNX
+                left_np = ref_left_imgs.cpu().numpy().astype(np.float32)
+                right_np = ref_right_imgs.cpu().numpy().astype(np.float32)
+
+                # Run ONNX inference
+                onnx_inputs = {
+                    self.onnx_session.get_inputs()[0].name: left_np,
+                    self.onnx_session.get_inputs()[1].name: right_np
+                }
+                onnx_outputs = self.onnx_session.run(None, onnx_inputs)
+                
+                # Convert back to torch tensor
+                disps = torch.from_numpy(onnx_outputs[0]).to(ref_left_imgs.device)
+            else:
+                # Use PyTorch inference
+                disps = self.depth_net(ref_left_imgs, ref_right_imgs) # only decode the first frame's depth
+            
             if isinstance(disps, (list,tuple)):
                 disps = disps[0]
             depths = (kwargs['baseline']*kwargs['focal']).reshape(-1,1,1,1) / (disps+1e-6)
@@ -231,6 +250,9 @@ class StereoHDVOPosesup(HDVO):
         if 'pose' in kwargs.keys(): 
             abs_poses = kwargs['pose'] # B T 4 4 load gt pose
             assert T == 2
+            # Convert to FP32 for linalg operations (not supported in FP16)
+            if abs_poses.dtype == torch.float16:
+                abs_poses = abs_poses.float()
             gtcTr = torch.linalg.solve(abs_poses[:,1,:,:], abs_poses[:,0,:,:])
             gtrTc = torch.linalg.solve(abs_poses[:,0,:,:], abs_poses[:,1,:,:])
             outputs[5] = gtcTr.detach().cpu().numpy()  

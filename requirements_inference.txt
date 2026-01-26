@@ -1,0 +1,21 @@
+# HDVO 推理加速所需依赖
+# Installation: pip install -r requirements_inference.txt
+
+# ONNX相关
+onnx>=1.12.0
+onnxruntime-gpu>=1.14.0  # GPU版本，如需CPU版本使用 onnxruntime
+onnxsim>=0.4.0  # 可选，用于模型简化
+
+# TensorRT相关 (可选，仅Nvidia GPU需要)
+# nvidia-tensorrt>=8.6.0  # 通过pip安装或从Nvidia官网下载
+# pycuda>=2022.1  # TensorRT Python API需要
+
+# torch2trt (可选，简化PyTorch->TensorRT转换)
+# torch2trt  # 从源码安装: git clone https://github.com/NVIDIA-AI-IOT/torch2trt
+
+# 基础依赖 (应该已在主requirements.txt中)
+torch>=1.10.0
+torchvision>=0.11.0
+numpy>=1.19.0
+opencv-python>=4.5.0
+mmcv-full>=1.6.0
