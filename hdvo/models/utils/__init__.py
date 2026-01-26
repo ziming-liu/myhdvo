@@ -18,7 +18,7 @@ from .shape_convert import (nchw2nlc2nchw, nchw_to_nlc, nlc2nchw2nlc,
                             nlc_to_nchw)
 from .up_conv_block import UpConvBlock
 from .position_encoding import *
-from .attention import *
+#from .attention import *
 from .helper import *
 from .layer_scale import *
 from .inverse_warp_3d import inverse_warp_3d

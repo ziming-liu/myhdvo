@@ -36,7 +36,7 @@ elseif(OPENROX_IS_UWP)
    include (${OPENROX_CMAKE_DIR}/install/install_desktop.cmake)
    # Unknown platform
 else()
-   message(FATAL_ERROR "Unknown platform for installation")
+   message(WARNING "Unknown platform for installation")
 endif()
 
 include(CPack)

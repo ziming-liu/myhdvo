@@ -38,18 +38,18 @@ float32x4_t vdivq_f32(float32x4_t a, float32x4_t b)
 
 float32x4_t rox_f32_movehl_ps(float32x4_t __A, float32x4_t __B)
 {
-   float32x2_t a32 = vget_high_f32(vreinterpretq_u32_f32(__A));
-   float32x2_t b32 = vget_high_f32(vreinterpretq_u32_f32(__B));
-   return vreinterpretq_u32_f32(vcombine_f32(a32, b32));
+   float32x2_t a32 = vget_high_f32(__A);
+   float32x2_t b32 = vget_high_f32(__B);
+   return vcombine_f32(a32, b32);
 }
 
 
 float32x4_t rox_f32_add_ss(float32x4_t a, float32x4_t b)
 {
-   float32_t b0 = vgetq_lane_f32(vreinterpretq_u32_f32(b), 0);
+   float32_t b0 = vgetq_lane_f32(b, 0);
    float32x4_t value = vsetq_lane_f32(b0, vdupq_n_f32(0), 0);
    // the upper values in the result must be the remnants of <a>.
-   return vreinterpretq_u32_f32(vaddq_f32(a, value));
+   return vaddq_f32(a, value);
 }
 
 
@@ -59,15 +59,16 @@ float rox_f32_hsum_ps(float32x4_t var)
    //float32x4_t sums = vaddq_f32(var, shuf);
    //shuf = rox_f32_movehl_ps(shuf, sums); // high half -> low half
    //sums = rox_f32_add_ss(sums, shuf);
-   //return  vgetq_lane_f32(vreinterpretq_u32_f32(a), 0);
+   //return  vgetq_lane_f32(a, 0);
    float32x4_t neon = vdupq_n_f32(0.0);
-   return  vgetq_lane_f32(vreinterpretq_u32_f32(neon), 0);
+   return  vgetq_lane_f32(neon, 0);
 }
 
 int rox_f32_cmplt_or(float32x4_t var, float32x4_t min)
 {
-   float32x4_t var_is_lower_than_min = vreinterpretq_u32_f32(vcltq_f32(vreinterpretq_u32_f32(var), vreinterpretq_u32_f32(min)));
-   float sum = rox_f32_hsum_ps(var_is_lower_than_min);
+   uint32x4_t var_is_lower_than_min = vcltq_f32(var, min);
+   float32x4_t var_is_lower_f32 = vreinterpretq_f32_u32(var_is_lower_than_min);
+   float sum = rox_f32_hsum_ps(var_is_lower_f32);
    if (fabsf(sum) <= 1e-5f)
    {
       return 0;

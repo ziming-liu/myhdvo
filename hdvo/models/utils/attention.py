@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn.bricks.drop import build_dropout
-from mmengine.model import BaseModule
+#from mmengine.model import BaseModule
 from mmengine.model.weight_init import trunc_normal_
 from mmengine.utils import digit_version
 
@@ -23,7 +23,7 @@ else:
     torch_meshgrid = torch.meshgrid
 
 
-class WindowMSA(BaseModule):
+class WindowMSA(nn.Module):
     """Window based multi-head self-attention (W-MSA) module with relative
     position bias.
 

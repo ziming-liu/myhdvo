@@ -208,12 +208,14 @@ class StereoHDVOPosesup(HDVO):
 
         torch.cuda.synchronize()
         t1 = time.time()
-        self.timer["sum_time"] += t1 - t0
         self.timer["count"] += 1
-        if self.timer["f0_time"] == 0:
-            self.timer["f0_time"] = t1 - t0
-        else:
-            self.timer["avg_time"] = (self.timer["sum_time"]-self.timer["f0_time"]) / (self.timer["count"]-1)
+        if self.timer["count"] > 5:
+            self.timer["sum_time"] += t1 - t0
+        
+            # if self.timer["f0_time"] == 0:
+            #     self.timer["f0_time"] = t1 - t0
+            # else:
+            self.timer["avg_time"] = (self.timer["sum_time"]) / (self.timer["count"]-5)
             self.timer["fps"] = 1 / self.timer["avg_time"]
             print("avg_time: ", self.timer["avg_time"])
             print("depthtime: ", t_vo-t0)

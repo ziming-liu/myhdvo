@@ -590,8 +590,8 @@ Rox_ErrorCode rox_odometry_dense_depthmap_prepare (
 
    if ( !image )
    { error = ROX_ERROR_NULL_POINTER; ROX_ERROR_CHECK_TERMINATE ( error ); }
-   rox_log("pose >> ");
-   rox_matse3_print(obj->pose);
+   // rox_log("pose >> ");
+   // rox_matse3_print(obj->pose);
    //rox_matut3_print(obj->calibration);
 
    // Create the map to warp the current image
@@ -777,8 +777,8 @@ Rox_ErrorCode rox_odometry_dense_depthmap_make (
 
       error = rox_array2d_double_mulmatmat ( obj->solution, obj->iJtJ, obj->Jtf );
       ROX_ERROR_CHECK_TERMINATE ( error );
-      rox_log("solution >> ");
-      rox_array2d_double_print(obj->solution);
+      // rox_log("solution >> ");
+      // rox_array2d_double_print(obj->solution);
       // error = rox_array2d_double_scale_inplace ( obj->solution, -0.8 );
       // ROX_ERROR_CHECK_TERMINATE ( error );
 

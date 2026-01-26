@@ -16,5 +16,5 @@ from .pixelnet import PixelNet
 from .pixelnet2 import PixelNet2
 from .pixelnet_slowfast4 import PixelNetSlowFast4
 from .igevstereo import IGEVStereo
-from .stereonet import StereoNet
+#from .stereonet import StereoNet
 from .coex import CoEx

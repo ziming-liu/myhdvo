@@ -16,8 +16,8 @@ from .pose_cnn import PoseCNN
 from .psmnet_base import *
 from .psmnet import PSMNet, PSMNetUnshared, PSMNetSingle, PSMNetOld
 from .psmnet2 import PSMNet2
-from .swin import StereoSwinTransformer, SwinTransformer
-from .vit import StereoVisionTransformer, VisionTransformer, PoseTransformer
+#from .swin import StereoSwinTransformer, SwinTransformer
+#from .vit import StereoVisionTransformer, VisionTransformer, PoseTransformer
 from .mscan import StereoMSCAN, StereoMSCANUnshared, MSCANCat
 from .crestereo import CREStereoBackbone
 #from .convnext import ConvNeXt
@@ -25,12 +25,12 @@ from .poolformer import PoolFormer
 #from .slak import *
 # from .transformer import Transformer
 from .position_encoding import *
-from .mit import *
-from .mobilevit import MobileViT
-from .edgenext import EdgeNeXt
-from .mobileone import MobileOne
-from .mobilenetv3 import MobileNetV3
-from .context_cluster import *
+#from .mit import *
+#from .mobilevit import MobileViT
+#from .edgenext import EdgeNeXt
+#from .mobileone import MobileOne
+#from .mobilenetv3 import MobileNetV3
+#from .context_cluster import *
 
 from .resnet3d import ResNet3d
 from .resnet3d_slowfast import ResNet3dSlowFast,ResNet3dPathway
@@ -46,5 +46,5 @@ from .shufflenetv2 import ShuffleNetV2_3d
 from .squeezenet import SqueezeNet3d
 
 from .swin_transformer3D import SwinTransformer3D
-from .biswin import BiSwinTransformer
+#from .biswin import BiSwinTransformer
 from .convnext import *

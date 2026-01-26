@@ -136,7 +136,7 @@ Rox_ErrorCode rox_remap_bilinear_nomask_uchar_to_uchar_fixed ( Rox_Image output,
    int16x8_t neonmask_border = vdupq_n_s16(~0);
    int16x8_t neon0 = vdupq_n_s16(0);
    int16x8_t neon15 = vdupq_n_s16(15);
-   int16x8_t neon255 = vdupq_n_u16(255);
+   uint16x8_t neon255 = vdupq_n_u16(255);
    int16x8_t neonwidth = vdupq_n_s16(inwidth - 1);
    int16x8_t neonheight = vdupq_n_s16(inheight - 1);
 
