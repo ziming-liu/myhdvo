@@ -6,7 +6,7 @@ import numpy as np
 from hdvo.core.visulization import vis_depth_tensor,vis_img_tensor
 from .grid_sample_hessian import grid_sample_hessian
 #try:
-from hdvo.models.utils.cuda_gridsample_grad2 import grid_sample_2d, grid_sample_2d_esm, grid_sample_2d_fc, grid_sample_2d_ic
+# from hdvo.models.utils.cuda_gridsample_grad2 import grid_sample_2d, grid_sample_2d_esm, grid_sample_2d_fc, grid_sample_2d_ic
 #except:
 #    print("Warning: cuda_gridsample_grad2 is not compiled, please compile it first. load gcc, cmake")
 
@@ -52,20 +52,20 @@ def temporal_warp_core(img, depth, T, K, invK, mode="bilinear",  padding_mode="z
     pix_coords[..., 1] = pix_coords[..., 1] / (H - 1)
     pix_coords = (pix_coords - 0.5) * 2
 
-    if grid_sample_type=="python_grad2":
-        output =  grid_sample_hessian(img, pix_coords, )
-    if grid_sample_type=="pytorch_grad2":
-        output =  grid_sample_2d(img, pix_coords, padding_mode=padding_mode, \
-                                       align_corners=align_corners)
-    if grid_sample_type=="esm":
-        output = grid_sample_2d_esm(img, pix_coords, gt_map, padding_mode=padding_mode, \
-                                       align_corners=align_corners)
-    if grid_sample_type=="fc":
-        output = grid_sample_2d_fc(img, pix_coords, gt_map, padding_mode=padding_mode, \
-                                       align_corners=align_corners)
-    if grid_sample_type=="ic":
-        output = grid_sample_2d_ic(img, pix_coords, gt_map, padding_mode=padding_mode, \
-                                       align_corners=align_corners)
+    # if grid_sample_type=="python_grad2":
+    #     output =  grid_sample_hessian(img, pix_coords, )
+    # if grid_sample_type=="pytorch_grad2":
+    #     output =  grid_sample_2d(img, pix_coords, padding_mode=padding_mode, \
+    #                                    align_corners=align_corners)
+    # if grid_sample_type=="esm":
+    #     output = grid_sample_2d_esm(img, pix_coords, gt_map, padding_mode=padding_mode, \
+    #                                    align_corners=align_corners)
+    # if grid_sample_type=="fc":
+    #     output = grid_sample_2d_fc(img, pix_coords, gt_map, padding_mode=padding_mode, \
+    #                                    align_corners=align_corners)
+    # if grid_sample_type=="ic":
+    #     output = grid_sample_2d_ic(img, pix_coords, gt_map, padding_mode=padding_mode, \
+    #                                    align_corners=align_corners)
     if grid_sample_type=="pytorch":
         output = F.grid_sample(img, pix_coords, mode=mode, padding_mode=padding_mode, \
                                        align_corners=align_corners)

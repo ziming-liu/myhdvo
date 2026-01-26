@@ -23,7 +23,7 @@ from .crestereo import CREStereoBackbone
 #from .convnext import ConvNeXt
 from .poolformer import PoolFormer
 #from .slak import *
-from .transformer import Transformer
+# from .transformer import Transformer
 from .position_encoding import *
 from .mit import *
 from .mobilevit import MobileViT

@@ -1,0 +1,758 @@
+gpu ids [1]
+address , port  szh-hpc-b02gp04.apac.bosch.com 45083
+gpu ids [2]
+address , port  szh-hpc-b02gp04.apac.bosch.com 45083
+gpu ids [0]gpu ids
+ address , port [3] 
+szh-hpc-b02gp04.apac.bosch.comaddress , port   45083szh-hpc-b02gp04.apac.bosch.com
+ 45083
+load checkpoint from local path: work_dirs/sceneflow.ckpt
+load checkpoint from local path: work_dirs/sceneflow.ckpt
+load checkpoint from local path: work_dirs/sceneflow.ckpt
+load checkpoint from local path: work_dirs/sceneflow.ckpt
+load backbone pretrain (removed 'stereo.' prefix from keys)
+loading openrox ddo library from  /fs/projects/SGH_CR_RIX/izi2sgh/hdvo/rox_odometry_module.so
+load backbone pretrain (removed 'stereo.' prefix from keys)
+load backbone pretrain (removed 'stereo.' prefix from keys)
+loading openrox ddo library from  /fs/projects/SGH_CR_RIX/izi2sgh/hdvo/rox_odometry_module.so
+loading openrox ddo library from  /fs/projects/SGH_CR_RIX/izi2sgh/hdvo/rox_odometry_module.so
+eval range eval range   [1, 192]
+[1, 192]
+eval range  [1, 192]
+load backbone pretrain (removed 'stereo.' prefix from keys)
+loading openrox ddo library from  /fs/projects/SGH_CR_RIX/izi2sgh/hdvo/rox_odometry_module.so
+eval range  [1, 192]
+num samples:  20391
+num samples:  20391
+num samples:  20391
+num samples:  20391
+using LION optimizerusing LION optimizer
+
+using LION optimizer
+using LION optimizer
+using Runner <class 'mmcv.runner.iter_based_runner.IterBasedRunner'>
+eval range  [1, 192]
+using Runner <class 'mmcv.runner.iter_based_runner.IterBasedRunner'>
+using Runner <class 'mmcv.runner.iter_based_runner.IterBasedRunner'>
+using Runner <class 'mmcv.runner.iter_based_runner.IterBasedRunner'>
+eval range  [1, 192]
+eval range  [1, 192]
+eval range  [1, 192]
+num samples:  10
+num samples:  10
+num samples:  10
+num samples:  10
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.04161477088928223
+depthtime:  0.01250004768371582
+ddvotime:  0.029114723205566406
+fps:  24.02992924460741
+avg_time:  0.04350161552429199
+depthtime:  0.01346898078918457
+ddvotime:  0.030032634735107422
+fps:  22.98765202045391
+avg_time:  0.04207134246826172
+depthtime:  0.013440847396850586
+ddvotime:  0.028630495071411133
+fps:  23.769148815595603
+avg_time:  0.04525566101074219
+depthtime:  0.013072967529296875
+ddvotime:  0.03582358360290527
+fps:  22.096683103637208
+avg_time:  0.03988802433013916
+depthtime:  0.013249874114990234
+ddvotime:  0.023024559020996094
+fps:  25.070181258498828
+avg_time:  0.043361783027648926
+depthtime:  0.012445688247680664
+ddvotime:  0.03220653533935547
+fps:  23.061782292540105
+Time for testing: 474.7118949890137 ms
+time per frame:  47.47447967529297
+[>>>                               ] 1/10, 2.4 task/s, elapsed: 0s, ETA:     4s[>>>>>>                            ] 2/10, 4.8 task/s, elapsed: 0s, ETA:     2s[>>>>>>>>>>                        ] 3/10, 7.2 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                     ] 4/10, 9.6 task/s, elapsed: 0s, ETA:     1sTime for testing: 482.00106620788574 ms
+time per frame:  48.203468322753906
+Time for testing: 501.04784965515137 ms
+time per frame:  50.1084566116333
+avg_time:  0.03861236572265625
+depthtime:  0.012976884841918945
+ddvotime:  0.025635480880737305
+fps:  25.89843904366726
+[>>>>>>>>>>>>>>>>                 ] 5/10, 11.0 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 13.2 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 15.4 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 17.6 task/s, elapsed: 0s, ETA:     0savg_time:  0.03817868232727051
+depthtime:  0.012664556503295898
+ddvotime:  0.025080442428588867
+fps:  26.19262737849163
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 18.2 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 20.2 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 22.2 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 24.2 task/s, elapsed: 0s, ETA:     0sTime for testing: 524.324893951416 ms
+time per frame:  52.43632793426514
+eval hereeval hereeval here
+
+
+eval here
+
+
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.044571240743001304
+depthtime:  0.017414093017578125
+ddvotime:  0.02957606315612793
+fps:  22.435991983396214
+avg_time:  0.048084100087483726
+depthtime:  0.01874566078186035
+ddvotime:  0.0457305908203125
+fps:  20.79689540161114
+avg_time:  0.04705405235290527
+depthtime:  0.013016700744628906
+ddvotime:  0.030947208404541016
+fps:  21.25215470285115
+avg_time:  0.04560089111328125
+depthtime:  0.013486623764038086
+ddvotime:  0.03520321846008301
+fps:  21.929396018069266
+avg_time:  0.053458611170450844
+depthtime:  0.03394770622253418
+ddvotime:  0.035916805267333984
+fps:  18.706060223142277
+avg_time:  0.05075579881668091
+depthtime:  0.012926101684570312
+ddvotime:  0.02972126007080078
+fps:  19.70218227895075
+avg_time:  0.044719505310058597
+depthtime:  0.013217687606811523
+ddvotime:  0.02216362953186035
+fps:  22.3616069334084
+avg_time:  0.049808502197265625
+depthtime:  0.012917518615722656
+ddvotime:  0.033101797103881836
+fps:  20.07689362028031
+avg_time:  0.04715332984924316
+depthtime:  0.013083457946777344
+ddvotime:  0.04027962684631348
+fps:  21.20741002167105
+avg_time:  0.06293002764383952
+depthtime:  0.017618894577026367
+ddvotime:  0.09481382369995117
+fps:  15.890665194994462
+[>>>                               ] 1/10, 2.6 task/s, elapsed: 0s, ETA:     4s[>>>>>>                            ] 2/10, 5.1 task/s, elapsed: 0s, ETA:     2s[>>>>>>>>>>                        ] 3/10, 7.7 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                    ] 4/10, 10.2 task/s, elapsed: 0s, ETA:     1sTime for testing: 487.1869087219238 ms
+time per frame:  48.72255325317383
+avg_time:  0.057880520820617676
+depthtime:  0.012957096099853516
+ddvotime:  0.029774904251098633
+fps:  17.276969623324277
+[>>>>>>>>>>>>>>>>                 ] 5/10, 11.5 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 13.8 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 16.1 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 18.3 task/s, elapsed: 0s, ETA:     0sTime for testing: 479.3121814727783 ms
+time per frame:  47.93500900268555
+Time for testing: 492.94471740722656 ms
+time per frame:  49.297261238098145
+avg_time:  0.05370197296142578
+depthtime:  0.012474536895751953
+ddvotime:  0.02451324462890625
+fps:  18.621289774926925
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 19.0 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 21.1 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 23.2 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 25.3 task/s, elapsed: 0s, ETA:     0sTime for testing: 507.83467292785645 ms
+time per frame:  50.78706741333008
+eval hereeval here
+eval here
+
+eval here
+
+
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.047072807947794594
+depthtime:  0.019239187240600586
+ddvotime:  0.027431011199951172
+fps:  21.243687037090186
+avg_time:  0.04682779312133789
+depthtime:  0.018442630767822266
+ddvotime:  0.03892660140991211
+fps:  21.354839366631026
+avg_time:  0.048424482345581055
+depthtime:  0.01777172088623047
+ddvotime:  0.023732662200927734
+fps:  20.65071120148493
+avg_time:  0.04638613973345075
+depthtime:  0.013245344161987305
+ddvotime:  0.02902078628540039
+fps:  21.55816383398818
+avg_time:  0.048424346106393
+depthtime:  0.016436338424682617
+ddvotime:  0.041567325592041016
+fps:  20.65076930110533
+avg_time:  0.04849529266357422
+depthtime:  0.013371467590332031
+ddvotime:  0.03562045097351074
+fps:  20.620558101118956
+avg_time:  0.04695093631744385
+depthtime:  0.013004302978515625
+ddvotime:  0.03790020942687988
+fps:  21.298829766435702
+avg_time:  0.048595155988420756
+depthtime:  0.013623952865600586
+ddvotime:  0.0359952449798584
+fps:  20.57818273570888
+avg_time:  0.054206411043802895
+depthtime:  0.016707420349121094
+ddvotime:  0.04002118110656738
+fps:  18.44800238097158
+[>>>                               ] 1/10, 2.6 task/s, elapsed: 0s, ETA:     3s[>>>>>>                            ] 2/10, 5.2 task/s, elapsed: 0s, ETA:     2s[>>>>>>>>>>                        ] 3/10, 7.8 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                    ] 4/10, 10.4 task/s, elapsed: 0s, ETA:     1sTime for testing: 452.61621475219727 ms
+time per frame:  45.26534080505371
+Time for testing: 459.49339866638184 ms
+time per frame:  45.95346450805664
+avg_time:  0.04968753457069397
+depthtime:  0.023884057998657227
+ddvotime:  0.03345012664794922
+fps:  20.125772160766587
+avg_time:  0.05198754583086286
+depthtime:  0.012992382049560547
+ddvotime:  0.02568197250366211
+fps:  19.235376165926674
+[>>>>>>>>>>>>>>>>                 ] 5/10, 11.7 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 14.1 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 16.4 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 18.8 task/s, elapsed: 0s, ETA:     0savg_time:  0.0503389835357666
+depthtime:  0.012757062911987305
+ddvotime:  0.02604198455810547
+fps:  19.865319673955774
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 19.3 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 21.4 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 23.5 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 25.7 task/s, elapsed: 0s, ETA:     0sTime for testing: 539.7589206695557 ms
+time per frame:  53.97982597351074
+Time for testing: 501.31916999816895 ms
+time per frame:  50.134921073913574
+eval hereeval hereeval here
+
+
+eval here
+
+
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.050092617670694985
+depthtime:  0.01813197135925293
+ddvotime:  0.0447392463684082
+fps:  19.963021429104046
+avg_time:  0.04934729470147027
+depthtime:  0.01686882972717285
+ddvotime:  0.029756546020507812
+fps:  20.26453539245801
+avg_time:  0.04966733455657959
+depthtime:  0.013542413711547852
+ddvotime:  0.032297372817993164
+fps:  20.133957437575575
+avg_time:  0.04646828439500597
+depthtime:  0.017427682876586914
+ddvotime:  0.025179386138916016
+fps:  21.52005422665167
+avg_time:  0.04866611957550049
+depthtime:  0.012843608856201172
+ddvotime:  0.02969193458557129
+fps:  20.54817619984274
+avg_time:  0.04605250358581543
+depthtime:  0.013912677764892578
+ddvotime:  0.028397798538208008
+fps:  21.714346064521205
+avg_time:  0.04851109331304377
+depthtime:  0.013240814208984375
+ddvotime:  0.03372001647949219
+fps:  20.613841736094574
+Time for testing: 456.70604705810547 ms
+time per frame:  45.674729347229004
+avg_time:  0.048573537306352096
+depthtime:  0.01466059684753418
+ddvotime:  0.02297496795654297
+fps:  20.58734149199439
+avg_time:  0.04592993042685769
+depthtime:  0.013402223587036133
+ddvotime:  0.03130197525024414
+fps:  21.772295117940054
+Time for testing: 518.5585021972656 ms
+time per frame:  51.860618591308594
+Time for testing: 524.2500305175781 ms
+time per frame:  52.42769718170166
+avg_time:  0.051007058885362416
+depthtime:  0.017127513885498047
+ddvotime:  0.03922414779663086
+fps:  19.605129600737904
+[>>>                               ] 1/10, 2.1 task/s, elapsed: 0s, ETA:     4s[>>>>>>                            ] 2/10, 4.3 task/s, elapsed: 0s, ETA:     2s[>>>>>>>>>>                        ] 3/10, 6.4 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                     ] 4/10, 8.6 task/s, elapsed: 0s, ETA:     1savg_time:  0.05032482147216797
+depthtime:  0.012859582901000977
+ddvotime:  0.03132510185241699
+fps:  19.870910034982394
+[>>>>>>>>>>>>>>>>>                 ] 5/10, 9.8 task/s, elapsed: 1s, ETA:     1s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 11.7 task/s, elapsed: 1s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 13.7 task/s, elapsed: 1s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 15.6 task/s, elapsed: 1s, ETA:     0savg_time:  0.06118902293118564
+depthtime:  0.012341976165771484
+ddvotime:  0.15748906135559082
+fps:  16.342800588998116
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 13.2 task/s, elapsed: 1s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 14.6 task/s, elapsed: 1s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 16.1 task/s, elapsed: 1s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 17.6 task/s, elapsed: 1s, ETA:     0sTime for testing: 719.6981906890869 ms
+time per frame:  71.97296619415283
+eval hereeval here
+eval here
+
+eval here
+
+
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.04924557606379191
+depthtime:  0.01641702651977539
+ddvotime:  0.04022097587585449
+fps:  20.306392572291497
+avg_time:  0.04889099414532001
+depthtime:  0.013261795043945312
+ddvotime:  0.031374216079711914
+fps:  20.453664677541088
+avg_time:  0.04687756299972534
+depthtime:  0.02112412452697754
+ddvotime:  0.03617739677429199
+fps:  21.33216694745542
+avg_time:  0.04823070764541626
+depthtime:  0.020197153091430664
+ddvotime:  0.024949312210083008
+fps:  20.73367878721219
+avg_time:  0.06104850769042969
+depthtime:  0.019783973693847656
+ddvotime:  0.0397188663482666
+fps:  16.380416783828537
+[>>>                               ] 1/10, 3.3 task/s, elapsed: 0s, ETA:     3s[>>>>>>                            ] 2/10, 6.6 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>                        ] 3/10, 9.9 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                    ] 4/10, 13.2 task/s, elapsed: 0s, ETA:     0savg_time:  0.0465852480668288
+depthtime:  0.013755321502685547
+ddvotime:  0.029322147369384766
+fps:  21.46602286125967
+avg_time:  0.04798485551561628
+depthtime:  0.013059139251708984
+ddvotime:  0.02314591407775879
+fps:  20.8399085347784
+avg_time:  0.059970543934748724
+depthtime:  0.012946844100952148
+ddvotime:  0.034088134765625
+fps:  16.674852925930693
+[>>>>>>>>>>>>>>>>                 ] 5/10, 14.2 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 17.1 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 19.9 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 22.8 task/s, elapsed: 0s, ETA:     0savg_time:  0.047867573224581204
+depthtime:  0.012645721435546875
+ddvotime:  0.030864238739013672
+fps:  20.89096924358962
+avg_time:  0.04654921804155622
+depthtime:  0.014035224914550781
+ddvotime:  0.032045602798461914
+fps:  21.482637992055263
+Time for testing: 434.53454971313477 ms
+time per frame:  43.457913398742676
+avg_time:  0.058598194803510396
+depthtime:  0.013123273849487305
+ddvotime:  0.027634382247924805
+fps:  17.065372122011066
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 22.8 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 25.4 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 27.9 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 30.4 task/s, elapsed: 0s, ETA:     0savg_time:  0.04814042363848005
+depthtime:  0.012524843215942383
+ddvotime:  0.039162635803222656
+fps:  20.77256335568827
+Time for testing: 468.23692321777344 ms
+time per frame:  46.82738780975342
+Time for testing: 443.9570903778076 ms
+time per frame:  44.46232318878174
+Time for testing: 494.7705268859863 ms
+time per frame:  49.47943687438965
+eval hereeval here
+
+eval here
+eval here
+
+
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.046389166514078775
+depthtime:  0.016944408416748047
+ddvotime:  0.027204036712646484
+fps:  21.55675721607344
+avg_time:  0.048665459950764975
+depthtime:  0.018121004104614258
+ddvotime:  0.04007291793823242
+fps:  20.54845471535055
+avg_time:  0.048026418685913085
+depthtime:  0.02052927017211914
+ddvotime:  0.025901079177856445
+fps:  20.821873197330785
+avg_time:  0.04642859101295471
+depthtime:  0.013895273208618164
+ddvotime:  0.033124685287475586
+fps:  21.53845245316567
+avg_time:  0.04857882857322693
+depthtime:  0.014148235321044922
+ddvotime:  0.03313112258911133
+fps:  20.58509909296426
+avg_time:  0.04775269329547882
+depthtime:  0.01396036148071289
+ddvotime:  0.029686450958251953
+fps:  20.941227206019793
+avg_time:  0.048206301296458524
+depthtime:  0.013820886611938477
+ddvotime:  0.028424978256225586
+fps:  20.74417603313335
+avg_time:  0.046628601410809684
+depthtime:  0.013361215591430664
+ddvotime:  0.036467552185058594
+fps:  21.44606464152225
+avg_time:  0.04805420426761403
+depthtime:  0.01434636116027832
+ddvotime:  0.03853201866149902
+fps:  20.809833712592482
+avg_time:  0.05855679512023926
+depthtime:  0.01665949821472168
+ddvotime:  0.04131770133972168
+fps:  17.07743734858818
+[>>>                               ] 1/10, 2.5 task/s, elapsed: 0s, ETA:     4s[>>>>>>                            ] 2/10, 4.9 task/s, elapsed: 0s, ETA:     2s[>>>>>>>>>>                        ] 3/10, 7.4 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                     ] 4/10, 9.9 task/s, elapsed: 0s, ETA:     1sTime for testing: 463.12856674194336 ms
+time per frame:  46.32141590118408
+Time for testing: 483.814001083374 ms
+time per frame:  48.38423728942871
+Time for testing: 505.2459239959717 ms
+time per frame:  50.528740882873535
+avg_time:  0.05757933855056763
+depthtime:  0.013438940048217773
+ddvotime:  0.02947854995727539
+fps:  17.367340875612435
+[>>>>>>>>>>>>>>>>                 ] 5/10, 11.1 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 13.3 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 15.6 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 17.8 task/s, elapsed: 0s, ETA:     0savg_time:  0.056478598538567036
+depthtime:  0.013450145721435547
+ddvotime:  0.02541661262512207
+fps:  17.705821778087127
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 18.4 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 20.4 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 22.4 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 24.5 task/s, elapsed: 0s, ETA:     0sTime for testing: 526.6873836517334 ms
+time per frame:  52.67210006713867
+eval hereeval hereeval here
+
+
+eval here
+
+
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.04777726862165663
+depthtime:  0.01650404930114746
+ddvotime:  0.0265653133392334
+fps:  20.93045560889843
+avg_time:  0.04664225048489041
+depthtime:  0.016052961349487305
+ddvotime:  0.03082132339477539
+fps:  21.43978880958899
+avg_time:  0.047631527248181794
+depthtime:  0.013590812683105469
+ddvotime:  0.0314173698425293
+fps:  20.994497925492663
+avg_time:  0.04858459366692437
+depthtime:  0.016584396362304688
+ddvotime:  0.03843116760253906
+fps:  20.582656445695136
+avg_time:  0.056481771998935275
+depthtime:  0.017812728881835938
+ddvotime:  0.038722991943359375
+fps:  17.704826966456555
+[>>>                               ] 1/10, 2.9 task/s, elapsed: 0s, ETA:     3s[>>>>>>                            ] 2/10, 5.7 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>                        ] 3/10, 8.6 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                    ] 4/10, 11.5 task/s, elapsed: 0s, ETA:     1savg_time:  0.048602480637399775
+depthtime:  0.014943599700927734
+ddvotime:  0.0339808464050293
+fps:  20.575081495541948
+avg_time:  0.046424301047074165
+depthtime:  0.014185905456542969
+ddvotime:  0.028315305709838867
+fps:  21.540442773408728
+avg_time:  0.04764654636383057
+depthtime:  0.016234159469604492
+ddvotime:  0.031697750091552734
+fps:  20.987880052500923
+avg_time:  0.04806138277053833
+depthtime:  0.014100313186645508
+ddvotime:  0.02368021011352539
+fps:  20.806725532104352
+Time for testing: 475.4824638366699 ms
+time per frame:  47.551655769348145
+avg_time:  0.0466758131980896
+depthtime:  0.013236522674560547
+ddvotime:  0.038218021392822266
+fps:  21.424372313687492
+avg_time:  0.05741641395970395
+depthtime:  0.014298200607299805
+ddvotime:  0.059941768646240234
+fps:  17.416622373905504
+[>>>>>>>>>>>>>>>>                 ] 5/10, 11.8 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 14.1 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 16.5 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 18.8 task/s, elapsed: 0s, ETA:     0sTime for testing: 512.8374099731445 ms
+time per frame:  51.28786563873291
+Time for testing: 525.5234241485596 ms
+time per frame:  52.556419372558594
+avg_time:  0.05648560523986816
+depthtime:  0.013474225997924805
+ddvotime:  0.025326013565063477
+fps:  17.703625476853155
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 19.3 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 21.5 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 23.6 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 25.8 task/s, elapsed: 0s, ETA:     0sTime for testing: 508.70537757873535 ms
+time per frame:  50.87447166442871
+eval hereeval hereeval here
+
+
+eval here
+
+
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.04774578412373861
+depthtime:  0.016512155532836914
+ddvotime:  0.0332183837890625
+fps:  20.944257558078565
+avg_time:  0.047183831532796226
+depthtime:  0.0254669189453125
+ddvotime:  0.03187727928161621
+fps:  21.19370062825285
+avg_time:  0.048467704227992466
+depthtime:  0.018189191818237305
+ddvotime:  0.03840494155883789
+fps:  20.632295585860476
+avg_time:  0.04755312746221369
+depthtime:  0.013623476028442383
+ddvotime:  0.029883861541748047
+fps:  21.029111088321425
+avg_time:  0.046946807341142135
+depthtime:  0.013622045516967773
+ddvotime:  0.028347253799438477
+fps:  21.300703000598798
+avg_time:  0.04696493563444718
+depthtime:  0.013469219207763672
+ddvotime:  0.03389453887939453
+fps:  21.292481007182175
+Time for testing: 450.55150985717773 ms
+time per frame:  45.05903720855713
+avg_time:  0.04753929635752802
+depthtime:  0.013352155685424805
+ddvotime:  0.033882856369018555
+fps:  21.035229307546246
+avg_time:  0.04864810813557018
+depthtime:  0.013808965682983398
+ddvotime:  0.03862762451171875
+fps:  20.555783941551205
+Time for testing: 504.9173831939697 ms
+time per frame:  50.49545764923096
+avg_time:  0.056456293378557475
+depthtime:  0.017000436782836914
+ddvotime:  0.038869619369506836
+fps:  17.71281712199348
+[>>>                               ] 1/10, 2.3 task/s, elapsed: 0s, ETA:     4s[>>>>>>                            ] 2/10, 4.6 task/s, elapsed: 0s, ETA:     2s[>>>>>>>>>>                        ] 3/10, 6.9 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                     ] 4/10, 9.2 task/s, elapsed: 0s, ETA:     1savg_time:  0.04812480055767557
+depthtime:  0.012844085693359375
+ddvotime:  0.023767948150634766
+fps:  20.779306893989965
+avg_time:  0.05590966614809903
+depthtime:  0.014315605163574219
+ddvotime:  0.03011488914489746
+fps:  17.885994835867944
+[>>>>>>>>>>>>>>>>                 ] 5/10, 10.4 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 12.5 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 14.6 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 16.6 task/s, elapsed: 0s, ETA:     0savg_time:  0.055117379064145294
+depthtime:  0.01402425765991211
+ddvotime:  0.023662805557250977
+fps:  18.14309782103764
+Time for testing: 586.4334106445312 ms
+time per frame:  58.64596366882324
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 17.3 task/s, elapsed: 1s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 19.2 task/s, elapsed: 1s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 21.1 task/s, elapsed: 1s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 23.1 task/s, elapsed: 1s, ETA:     0sTime for testing: 562.0584487915039 ms
+time per frame:  56.209778785705566
+eval hereeval hereeval here
+
+
+eval here
+
+
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.0476201077302297
+depthtime:  0.02223682403564453
+ddvotime:  0.027241945266723633
+fps:  20.999532501376315
+avg_time:  0.04684438308080038
+depthtime:  0.016874313354492188
+ddvotime:  0.02719736099243164
+fps:  21.347276540607485
+avg_time:  0.04915157953898112
+depthtime:  0.019317626953125
+ddvotime:  0.05344986915588379
+fps:  20.345226122528175
+avg_time:  0.046909446716308596
+depthtime:  0.017909526824951172
+ddvotime:  0.030561447143554688
+fps:  21.317667762053112
+avg_time:  0.04912761688232422
+depthtime:  0.013620615005493164
+ddvotime:  0.03493189811706543
+fps:  20.355149780525853
+avg_time:  0.05584665139516195
+depthtime:  0.026821136474609375
+ddvotime:  0.04579877853393555
+fps:  17.9061765570179
+[>>>                               ] 1/10, 2.9 task/s, elapsed: 0s, ETA:     3s[>>>>>>                            ] 2/10, 5.9 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>                        ] 3/10, 8.8 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                    ] 4/10, 11.7 task/s, elapsed: 0s, ETA:     1savg_time:  0.04743438720703125
+depthtime:  0.014223814010620117
+ddvotime:  0.028753280639648438
+fps:  21.08175226624977
+avg_time:  0.04678198007436899
+depthtime:  0.013413429260253906
+ddvotime:  0.030181884765625
+fps:  21.37575191153318
+avg_time:  0.04863356626950777
+depthtime:  0.012592554092407227
+ddvotime:  0.023689746856689453
+fps:  20.56193030258978
+avg_time:  0.05547377586364746
+depthtime:  0.012739896774291992
+ddvotime:  0.03378486633300781
+fps:  18.02653568161583
+[>>>>>>>>>>>>>>>>                 ] 5/10, 12.8 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 15.4 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 18.0 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 20.5 task/s, elapsed: 0s, ETA:     0savg_time:  0.04736644488114577
+depthtime:  0.013534784317016602
+ddvotime:  0.03213310241699219
+fps:  21.111991886012337
+Time for testing: 474.46489334106445 ms
+time per frame:  47.45006561279297
+Time for testing: 483.1216335296631 ms
+time per frame:  48.31593036651611
+avg_time:  0.05477673273820143
+depthtime:  0.012644290924072266
+ddvotime:  0.024706363677978516
+fps:  18.255926376247654
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 21.0 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 23.3 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 25.7 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 28.0 task/s, elapsed: 0s, ETA:     0sTime for testing: 510.67399978637695 ms
+time per frame:  51.07107162475586
+Time for testing: 476.5927791595459 ms
+time per frame:  47.663283348083496
+eval hereeval hereeval here
+
+
+eval here
+
+
+[                                                  ] 0/10, elapsed: 0s, ETA:avg_time:  0.04717085979602955
+depthtime:  0.017205476760864258
+ddvotime:  0.040076255798339844
+fps:  21.199528783746523
+avg_time:  0.04982456454524287
+depthtime:  0.017280101776123047
+ddvotime:  0.06351041793823242
+fps:  20.070421269652172
+avg_time:  0.04751832396895797
+depthtime:  0.019921064376831055
+ddvotime:  0.03154611587524414
+fps:  21.0445132840389
+avg_time:  0.04705861636570522
+depthtime:  0.013002395629882812
+ddvotime:  0.03102564811706543
+fps:  21.250093547773055
+avg_time:  0.04972201585769653
+depthtime:  0.013215065002441406
+ddvotime:  0.033738136291503906
+fps:  20.11181531460794
+avg_time:  0.047400849206107
+depthtime:  0.013386011123657227
+ddvotime:  0.030843019485473633
+fps:  21.096668451061475
+avg_time:  0.04700242239853431
+depthtime:  0.012274503707885742
+ddvotime:  0.03315448760986328
+fps:  21.275499197062302
+avg_time:  0.054758566397207754
+depthtime:  0.016873836517333984
+ddvotime:  0.037412405014038086
+fps:  18.261982842030577
+[>>>                               ] 1/10, 2.8 task/s, elapsed: 0s, ETA:     3s[>>>>>>                            ] 2/10, 5.5 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>                        ] 3/10, 8.3 task/s, elapsed: 0s, ETA:     1s[>>>>>>>>>>>>>                    ] 4/10, 11.1 task/s, elapsed: 0s, ETA:     1savg_time:  0.04926055875317804
+depthtime:  0.012537002563476562
+ddvotime:  0.023802757263183594
+fps:  20.300216345708527
+avg_time:  0.04731767753074909
+depthtime:  0.012685298919677734
+ddvotime:  0.032303571701049805
+fps:  21.13375068651999
+Time for testing: 458.9579105377197 ms
+time per frame:  45.89977264404297
+Time for testing: 477.771520614624 ms
+time per frame:  47.78108596801758
+Time for testing: 475.1908779144287 ms
+time per frame:  47.53720760345459
+avg_time:  0.05565481526511056
+depthtime:  0.04643058776855469
+ddvotime:  0.03342294692993164
+fps:  17.967897211346774
+[>>>>>>>>>>>>>>>>                 ] 5/10, 11.3 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>              ] 6/10, 13.5 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>          ] 7/10, 15.8 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>       ] 8/10, 18.1 task/s, elapsed: 0s, ETA:     0savg_time:  0.05494747490718447
+depthtime:  0.012514352798461914
+ddvotime:  0.022627592086791992
+fps:  18.199198447047262
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    ] 9/10, 18.8 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 10/10, 20.8 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 11/10, 22.9 task/s, elapsed: 0s, ETA:     0s[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 12/10, 25.0 task/s, elapsed: 0s, ETA:     0sTime for testing: 523.7538814544678 ms
+time per frame:  52.3789644241333
+eval hereeval hereeval here
+
+
+eval here
+
+
+{'type': 'KITTIOdometryDataset', 'ann_file': 'annotations/kittiodometry/kitti_odometry_test_09.json', 'test_seq_id': '09', 'data_prefix': 'data_sets/kitti_odometry', 'kitti_rawdata_path': '/fs/projects/SGH_CR_RIX/Kitti-Dataset', 'eval_modality': 'depth', 'depth_scale_ratio': 256, 'test_mode': True, 'pipeline': [{'type': 'LoadStereoImages', 'to_float32': False, 'color_type': 'color', 'file_client_args': {'backend': 'disk'}, 'imdecode_backend': 'cv2', 'to_rgb': True, 'to_gray': False}, {'type': 'StereoResize2', 'img_scale': (1024, 320), 'keep_ratio': False, 'ratio_range': (1, 1.0)}, {'type': 'StereoNormalize', 'mean': [88.78708011161852, 93.43778497818349, 91.33551888646076], 'std': [80.93941240862273, 81.55742718042109, 82.55097977909143], 'to_rgb': False}, {'type': 'StereoFormatShape', 'input_format': 'NTCHW', 'keys': ['left_imgs', 'right_imgs', 'raw_left_imgs', 'raw_right_imgs']}, {'type': 'Collect', 'keys': ['left_imgs', 'right_imgs', 'raw_left_imgs', 'raw_right_imgs', 'intrinsics', 'focal', 'baseline', 'pose'], 'meta_keys': []}, {'type': 'ToTensor', 'keys': ['left_imgs', 'right_imgs', 'raw_left_imgs', 'raw_right_imgs', 'intrinsics', 'focal', 'baseline', 'pose']}]}
+eval range  [1, 192]
+num samples:  1590
+load checkpoint from local path: work_dirs/sceneflow.ckpt
+load backbone pretrain (removed 'stereo.' prefix from keys)
+loading openrox ddo library from  /fs/projects/SGH_CR_RIX/izi2sgh/hdvo/rox_odometry_module.so
+## loading checkpoint: /home/ziliu/zimingdepth_torch2/work_dirs/coex/iter_48000.pth
+load checkpoint from local path: /home/ziliu/zimingdepth_torch2/work_dirs/coex/iter_48000.pth
+{'type': 'KITTIOdometryDataset', 'ann_file': 'annotations/kittiodometry/kitti_odometry_test_09.json', 'test_seq_id': '09', 'data_prefix': 'data_sets/kitti_odometry', 'kitti_rawdata_path': '/fs/projects/SGH_CR_RIX/Kitti-Dataset', 'eval_modality': 'depth', 'depth_scale_ratio': 256, 'test_mode': True, 'pipeline': [{'type': 'LoadStereoImages', 'to_float32': False, 'color_type': 'color', 'file_client_args': {'backend': 'disk'}, 'imdecode_backend': 'cv2', 'to_rgb': True, 'to_gray': False}, {'type': 'StereoResize2', 'img_scale': (1024, 320), 'keep_ratio': False, 'ratio_range': (1, 1.0)}, {'type': 'StereoNormalize', 'mean': [88.78708011161852, 93.43778497818349, 91.33551888646076], 'std': [80.93941240862273, 81.55742718042109, 82.55097977909143], 'to_rgb': False}, {'type': 'StereoFormatShape', 'input_format': 'NTCHW', 'keys': ['left_imgs', 'right_imgs', 'raw_left_imgs', 'raw_right_imgs']}, {'type': 'Collect', 'keys': ['left_imgs', 'right_imgs', 'raw_left_imgs', 'raw_right_imgs', 'intrinsics', 'focal', 'baseline', 'pose'], 'meta_keys': []}, {'type': 'ToTensor', 'keys': ['left_imgs', 'right_imgs', 'raw_left_imgs', 'raw_right_imgs', 'intrinsics', 'focal', 'baseline', 'pose']}]}
+eval range  [1, 192]
+num samples:  1590
+load checkpoint from local path: work_dirs/sceneflow.ckpt
+load backbone pretrain (removed 'stereo.' prefix from keys)
+loading openrox ddo library from  /fs/projects/SGH_CR_RIX/izi2sgh/hdvo/rox_odometry_module.so
+## loading checkpoint: /home/ziliu/zimingdepth_torch2/work_dirs/coex/iter_48000.pth
+load checkpoint from local path: /home/ziliu/zimingdepth_torch2/work_dirs/coex/iter_48000.pth
+
+------------------------------------------------------------
+Sender: LSF System <rbw8fe@szh-hpc-b02gp04>
+Subject: Job 333147: <stereohdvo_coex> in cluster <szh-hpc> Exited
+
+Job <stereohdvo_coex> was submitted from host <szh-hpc-vis5> by user <izi2sgh> in cluster <szh-hpc> at Sun Jan 25 02:38:43 2026
+Job was executed on host(s) <8*szh-hpc-b02gp04>, in queue <gpu_a100_batch>, as user <izi2sgh> in cluster <szh-hpc> at Sun Jan 25 02:38:43 2026
+</home/izi2sgh> was used as the home directory.
+</home/izi2sgh/PROJECT/hdvo> was used as the working directory.
+Started at Sun Jan 25 02:38:43 2026
+Terminated at Sun Jan 25 04:08:21 2026
+Results reported at Sun Jan 25 04:08:21 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash -l
+
+## Scheduler parameters ##
+
+# BSUB -J stereohdvo_coex                # job name
+# BSUB -o logs/stereohdvo_coex.%J.stdout      # optional: Have output written to specific file
+# BSUB -e logs/stereohdvo_coex.%J.stderr      # optional: Have errors written to specific file
+# BSUB -q gpu_a100_batch          # optional: use highend nodes w/ Volta GPUs (default: Geforce GPUs)
+# BSUB -W 36:00                       # fill in desired wallclock time [hours,]minutes (hours are optional)
+# BSUB -n 8                       # min CPU cores,max CPU cores (max cores is optional)
+# BSUB -M 50240                       # fill in required amount of RAM (in Mbyte)
+# #BSUB -R "span[hosts=2]"          # optional: run on single host (if using more than 1 CPU cores)
+# #BSUB -R "span[ptile=28]"         # optional: fill in to specify cores per node (max 28)
+# #BSUB -P myProject                # optional: fill in cluster project
+# BSUB -m szh-hpc-b02gp04  # optional: specify node id 
+# BSUB -gpu "num=4:mode=exclusive_process:mps=no:aff=no"
+
+## Job parameters ##
+
+# Load modules
+module purge
+
+module load cuda/11.8.0
+
+conda activate hdvo
+
+
+#PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
+ OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=4  \
+    tools/train.py configs/hdvo/stereohdvo_posesup_coex_kittiodom_huberloss.py \
+      --launcher pytorch --validate
+# Any arguments from the third one are captured by ${@:3}
+
+
+# OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12860 \
+#   tools/test.py configs/hdvo/stereohdvo_posesup_coex_kittiodom_huberloss.py \
+#    ckps/stereohdvo_posesup_coex_kittiodom_huberloss.pth   \
+#     --launcher pytorch  --eval  EPE 3PE D1  --test_seq_id 09 # --save_depth
+ 
+# OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12860 \
+#   tools/test_time_training.py configs/hdvo/stereohdvo_posesup_coex_kittiodom_huberloss.py \
+#    ckps/stereohdvo_posesup_coex_kittiodom_huberloss.pth   \
+#     --launcher pytorch  --eval  EPE 3PE D1  --test_seq_id 09  --seq_optim 20 --lr 5e-6  # --save_depth
+ 
+
+
+#python tools/deploy.py configs/hdvo/stereohdvo_posesup_coex_kittiodom_huberloss.py \
+#   work_dirs/stereohdvo_posesup_coex_kittiodom_huberloss/iter_40000.pth   \
+#    --launcher pytorch  --eval  EPE 3PE D1 # --save_depth
+ 
+
+(... more ...)
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   45604.00 sec.
+    Max Memory :                                 7801 MB
+    Average Memory :                             6656.46 MB
+    Total Requested Memory :                     401920.00 MB
+    Delta Memory :                               394119.00 MB
+    Max Swap :                                   1 MB
+    Max Processes :                              36
+    Max Threads :                                221
+    Run time :                                   5378 sec.
+    Turnaround time :                            5378 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <logs/stereohdvo_coex.333147.stderr> for stderr output of this job.
+

@@ -8,6 +8,7 @@ Description: Python function to load OPENROX Dense direct odometry with openrox 
 from ctypes import *
 import numpy as np
 import torch
+import os
 from ..registry import VISUAL_ODOMETRY
 from ...core import vis_depth_tensor
 """ 
@@ -39,12 +40,17 @@ class Rox_Array2D_Struct(Structure):
 """
 @VISUAL_ODOMETRY.register_module()
 class DirectVO_OpenRox:
-    def __init__(self, so_file_path= "/home/ziliu/openrox/build/rox_odometry_module.so", ifmask=1, disp_log=0, ifrobust=0, **kwargs ):
+    def __init__(self, so_file_path=None, ifmask=1, disp_log=0, ifrobust=0, **kwargs ):
         '''
         description: ifmask: control use custom mask or not;
                     disp_log: if print DDO running log. 
         return: {*}
         '''        
+        if so_file_path is None:
+            # Get the project root directory (3 levels up from this file)
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+            so_file_path = os.path.join(project_root, "rox_odometry_module.so")
         print("loading openrox ddo library from ", so_file_path)
         self.cdll = cdll.LoadLibrary(so_file_path)  
         self.ifmask=ifmask

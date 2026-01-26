@@ -1,4 +1,4 @@
-name: torch2
+name: hdvo
 channels:
   - omgarcia
   - pytorch
@@ -326,4 +326,4 @@ dependencies:
     - yapf==0.40.1
     - yarl==1.9.2
     - zipp==3.17.0
-prefix: /home/ziliu/anaconda3/envs/torch2
+# prefix: /home/ziliu/anaconda3/envs/torch2

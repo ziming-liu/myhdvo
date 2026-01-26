@@ -32,7 +32,7 @@ import warnings
 
 @STEREO_PREDICTOR.register_module()
 class CoEx(nn.Module):
-    def __init__(self, cfg, losses, subnetwork=False, pretrain=None, **kwargs):
+    def __init__(self, cfg, losses, subnetwork=False, pretrain=None, pretrain_official=None, **kwargs):
         super(CoEx, self).__init__()
         self.cfg = cfg
         self.type = self.cfg['backbone']['type']
@@ -106,11 +106,32 @@ class CoEx(nn.Module):
 
         if pretrain is not None:
             self.__init_weights(pretrain)
+        if pretrain_official is not None:
+            self.__init_backbone_weights(pretrain_official)
 
     def __init_weights(self, pretrain):
         load_checkpoint(self, pretrain, map_location='cpu')
         print("load pretrain")
 
+    def __init_backbone_weights(self, backbone_pretrain):
+        checkpoint = _load_checkpoint(backbone_pretrain, map_location='cpu')
+        if 'state_dict' in checkpoint:
+            state_dict = checkpoint['state_dict']
+        else:
+            state_dict = checkpoint
+        
+        # Remove "stereo." prefix from keys
+        new_state_dict = {}
+        for key, value in state_dict.items():
+            if key.startswith('stereo.'):
+                new_key = key[7:]  # Remove "stereo." (7 characters)
+                new_state_dict[new_key] = value
+            else:
+                new_state_dict[key] = value
+        
+        # Load the modified state_dict
+        self.load_state_dict(new_state_dict, strict=False)
+        print("load backbone pretrain (removed 'stereo.' prefix from keys)")
 
 
     def extract_disp(self, imL, imR=None, u0=None, v0=None, training=False):

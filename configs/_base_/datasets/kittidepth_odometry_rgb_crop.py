@@ -9,10 +9,11 @@ Save to /home/ziliu/mydata/kitti_odometry/kitti_odometry_test_10.json
 import os.path as osp
  
 batch_size = 1
-root2 = "/home/ziliu/mydata"
+# root2 = "/home/ziliu/mydata"
+raw_kitti_root = "/fs/projects/SGH_CR_RIX/Kitti-Dataset"
 
-data_root = root2
-annfile_root = osp.join(root2, "kitti_odometry")
+data_root = "data_sets/kitti_odometry"
+annfile_root = osp.join("annotations", "kittiodometry")
  
 
 dataset_type = 'KITTIOdometryDataset'
@@ -97,6 +98,7 @@ data = dict(
         type=dataset_type,
         ann_file=osp.join(annfile_root, "kitti_odometry_train_3frame.json"),
         data_prefix=data_root,
+        kitti_rawdata_path=raw_kitti_root,
         eval_modality="depth",
         depth_scale_ratio=256,
         #end_id=10,
@@ -107,6 +109,7 @@ data = dict(
         ann_file=osp.join(annfile_root, "kitti_odometry_test_09.json"),
         end_id=10,
         data_prefix=data_root,
+        kitti_rawdata_path=raw_kitti_root,
         eval_modality="depth",
         depth_scale_ratio=256,
         test_mode= True,
@@ -117,6 +120,7 @@ data = dict(
         #end_id=100,
         test_seq_id=9,
         data_prefix=data_root,
+        kitti_rawdata_path=raw_kitti_root,
         eval_modality="depth",
         depth_scale_ratio=256,
         test_mode= True,
