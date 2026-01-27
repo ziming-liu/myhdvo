@@ -7,7 +7,6 @@ LastEditTime: 2024-02-07 16:33:00
 '''
 from ftplib import all_errors
 import os.path as osp
-from turtle import right
 from typing import Sequence
 import numpy as np
 import random

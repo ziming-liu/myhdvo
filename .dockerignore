@@ -1,0 +1,60 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+env/
+venv/
+ENV/
+hdvo_env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Work directories (model checkpoints, etc.)
+work_dirs/
+*.pth
+*.ckpt
+
+# Large datasets (mount them instead)
+data_sets/
+annotations/
+
+# Documentation images
+docs/imgs/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+mmcv-full-*/build/
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (don't include in build context)
+*.tar
+Dockerfile*
+.dockerignore

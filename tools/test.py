@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import time
 import pandas as pd
 import random
-import cv2
 import matplotlib as mp
 import sys
 from torch.nn import functional as F

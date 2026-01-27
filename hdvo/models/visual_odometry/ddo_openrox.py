@@ -52,7 +52,7 @@ class DirectVO_OpenRox:
             project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
             so_file_path = os.path.join(project_root, "rox_odometry_module.so")
         print("loading openrox ddo library from ", so_file_path)
-        so_file_path = "/home/nvidia/ziming/hdvo/rox_odometry_module.so"
+        # so_file_path = "/home/nvidia/ziming/hdvo/rox_odometry_module.so"
         self.cdll = cdll.LoadLibrary(so_file_path)  
         self.ifmask=ifmask
         self.disp_log = disp_log

@@ -17,8 +17,7 @@ OMP_NUM_THREADS=12 python tools/test.py \
     work_dirs/stereohdvo_posesup_coex_kittiodom_huberloss/iter_40000.pth \
     --launcher none \
     --eval EPE 3PE D1 \
-    --test_seq_id 09 \
-    --no_gt
+    --test_seq_id 09 
 
 # 启用FP16加速推理
 OMP_NUM_THREADS=12 python tools/test.py \
