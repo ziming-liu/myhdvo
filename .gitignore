@@ -127,3 +127,5 @@ work_dirs/
 !tests/data/**/*.pth
 
 data_sets/
+
+*.pyc
