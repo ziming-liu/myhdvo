@@ -29,11 +29,9 @@ timm==0.5.4
 # Training and logging
 tensorboard==2.12.0
 lightning==2.0.1
-pytorch-lightning==2.0.5
 tqdm==4.65.0
 
 # Model optimization and deployment
-torch2trt==0.4.0
 thop==0.1.1-2209072238
 
 # Utilities
@@ -56,3 +54,6 @@ setuptools-scm==8.0.4
 
 # Additional detection/segmentation
 ultralytics==8.0.132
+
+opt_einsum=3.4.0
+ruamel.yaml==0.18.16

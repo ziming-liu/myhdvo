@@ -68,9 +68,9 @@ cudnn_benchmark = False
 
 find_unused_parameters = True
 
-optimizer = dict(type='DistShampoo', lr=1e-4, grafting_type="ADAM"
-                            )
-
+# optimizer = dict(type='DistShampoo', lr=1e-4, grafting_type="ADAM"
+#                             )
+optimizer=dict(type="Lion", lr=1e-4)
  
 #optimizer_config = dict(type="GradientCumulativeOptimizerHook", cumulative_iters=4)
 #optimizer_config = dict(type="Fp16OptimizerHook", loss_scale=256., grad_clip=dict(max_norm=35, norm_type=2) )

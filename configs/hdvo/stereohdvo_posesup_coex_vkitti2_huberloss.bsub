@@ -1,0 +1,82 @@
+#!/bin/bash -l
+
+## Scheduler parameters ##
+
+# BSUB -J stereohdvo_coex_vkitti2_huberloss                # job name
+# BSUB -o logs/stereohdvo_coex_vkitti2_huberloss.%J.stdout      # optional: Have output written to specific file
+# BSUB -e logs/stereohdvo_coex_vkitti2_huberloss.%J.stderr      # optional: Have errors written to specific file
+# BSUB -q gpu_a100_batch          # optional: use highend nodes w/ Volta GPUs (default: Geforce GPUs)
+# BSUB -W 36:00                       # fill in desired wallclock time [hours,]minutes (hours are optional)
+# BSUB -n 8                       # min CPU cores,max CPU cores (max cores is optional)
+# BSUB -M 50240                       # fill in required amount of RAM (in Mbyte)
+# #BSUB -R "span[hosts=2]"          # optional: run on single host (if using more than 1 CPU cores)
+# #BSUB -R "span[ptile=28]"         # optional: fill in to specify cores per node (max 28)
+# #BSUB -P myProject                # optional: fill in cluster project
+# BSUB -m szh-hpc-b02gp04  # optional: specify node id 
+# BSUB -gpu "num=4:mode=exclusive_process:mps=no:aff=no"
+
+## Job parameters ##
+
+# Load modules
+module purge
+
+module load cuda/11.8.0
+
+conda activate hdvo
+
+export LD_LIBRARY_PATH=/home/izi2sgh/PROJECT/hdvo/openrox/cmake:$LD_LIBRARY_PATH
+
+
+
+
+ OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=4  \
+    tools/train.py configs/hdvo/stereohdvo_posesup_coex_vkitti2_huberloss.py \
+      --launcher pytorch  
+ 
+
+
+OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12990 \
+  tools/test.py configs/hdvo/stereohdvo_posesup_coex_vkitti2_huberloss.py \
+   work_dirs/stereohdvo_posesup_coex_vkitti2_huberloss/iter_40000.pth   \
+    --launcher pytorch  --eval  EPE 3PE D1
+ 
+OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12860 \
+  tools/test.py configs/hdvo/stereohdvo_posesup_coex_vkitti2_huberloss.py \
+   work_dirs/stereohdvo_posesup_coex_kittiodom_huberloss/iter_40000.pth   \
+    --launcher pytorch  --eval  EPE 3PE D1
+ 
+# OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12860 \
+#   tools/test.py configs/hdvo/stereohdvo_posesup_coex_vkitti2_huberloss.py \
+#    work_dirs/stereohdvo_posesup_coex_vkitti2_huberloss/iter_40000.pth   \
+#     --launcher pytorch  --eval  EPE 3PE D1  --test_seq_id 09 # --save_depth
+ 
+
+# OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12860 \
+#   tools/test.py configs/hdvo/stereohdvo_posesup_coex_vkitti2_huberloss.py \
+#    ckps/stereohdvo_posesup_coex_vkitti2_huberloss.pth   \
+#     --launcher pytorch  --eval  EPE 3PE D1  --test_seq_id 09 # --save_depth
+ 
+# OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12860 \
+#   tools/test_time_training.py configs/hdvo/stereohdvo_posesup_coex_vkitti2_huberloss.py \
+#    ckps/stereohdvo_posesup_coex_vkitti2_huberloss.pth   \
+#     --launcher pytorch  --eval  EPE 3PE D1  --test_seq_id 09  --seq_optim 20 --lr 5e-6  # --save_depth
+ 
+
+
+#python tools/deploy.py configs/hdvo/stereohdvo_posesup_coex_vkitti2_huberloss.py \
+#   work_dirs/stereohdvo_posesup_coex_vkitti2_huberloss/iter_40000.pth   \
+#    --launcher pytorch  --eval  EPE 3PE D1 # --save_depth
+ 
+
+
+
+#  OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12860 \
+#   tools/test.py configs/hdvo/stereohdvo_posesup_coex_vkitti2_huberloss.py \
+#     /home/ziliu/zimingdepth_torch2/work_dirs/coex/iter_48000.pth \
+#     --launcher pytorch  --eval  EPE 3PE D1  --test_seq_id 09 # --save_depth
+ 
+#  OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12060 \
+#   tools/test_time_training.py configs/hdvo/stereohdvo_posesup_coex_vkitti2_huberloss.py \
+#    /home/ziliu/zimingdepth_torch2/work_dirs/coex/iter_48000.pth \
+#     --launcher pytorch  --eval  EPE 3PE D1  --test_seq_id 09  --seq_optim 20 --lr 5e-6  # --save_depth
+ 

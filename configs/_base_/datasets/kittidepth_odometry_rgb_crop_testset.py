@@ -9,12 +9,13 @@ Save to /home/ziliu/mydata/kitti_odometry/kitti_odometry_test_10.json
 import os.path as osp
  
 batch_size = 4
-root2 = "/home/ziliu/mydata"
+# root2 = "data_sets"
 
-data_root = root2
-annfile_root = osp.join(root2, "kitti_odometry")
+raw_kitti_root = "/fs/projects/SGH_CR_RIX/Kitti-Dataset"
+
+data_root = "data_sets/kitti_odometry"
+annfile_root = osp.join("annotations", "kittiodometry")
  
-
 dataset_type = 'KITTIOdometryDataset'
  
 img_norm_cfg = dict(mean=[88.78708011161852, 93.43778497818349, 91.33551888646076], std=[80.93941240862273, 81.55742718042109, 82.55097977909143], to_rgb=False)

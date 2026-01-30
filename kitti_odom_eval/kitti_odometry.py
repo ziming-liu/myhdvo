@@ -10,6 +10,63 @@ import os
 from glob import glob
 
 
+def align_trajectory_sim3(pred_xyz, gt_xyz):
+    """
+    Align predicted trajectory to ground truth using Sim3 alignment (scale + rotation + translation).
+    This is similar to Umeyama alignment.
+    
+    Args:
+        pred_xyz: Predicted trajectory (N, 3)
+        gt_xyz: Ground truth trajectory (N, 3)
+        
+    Returns:
+        aligned_pred_xyz: Aligned predicted trajectory
+        scale: Scale factor
+        R: Rotation matrix
+        t: Translation vector
+    """
+    # Ensure same length
+    min_len = min(len(pred_xyz), len(gt_xyz))
+    pred_xyz = pred_xyz[:min_len]
+    gt_xyz = gt_xyz[:min_len]
+    
+    # Compute centroids
+    pred_centroid = np.mean(pred_xyz, axis=0)
+    gt_centroid = np.mean(gt_xyz, axis=0)
+    
+    # Center the trajectories
+    pred_centered = pred_xyz - pred_centroid
+    gt_centered = gt_xyz - gt_centroid
+    
+    # Compute scale
+    pred_scale = np.sqrt(np.mean(np.sum(pred_centered**2, axis=1)))
+    gt_scale = np.sqrt(np.mean(np.sum(gt_centered**2, axis=1)))
+    scale = gt_scale / pred_scale if pred_scale > 0 else 1.0
+    
+    # Scale the prediction
+    pred_scaled = pred_centered * scale
+    
+    # Compute rotation using SVD
+    H = pred_scaled.T @ gt_centered
+    U, S, Vt = np.linalg.svd(H)
+    R = Vt.T @ U.T
+    
+    # Ensure proper rotation (det(R) = 1)
+    if np.linalg.det(R) < 0:
+        Vt[-1, :] *= -1
+        R = Vt.T @ U.T
+    
+    # Apply rotation
+    pred_rotated = (R @ pred_scaled.T).T
+    
+    # Compute translation
+    t = gt_centroid - pred_centroid * scale
+    
+    # Final aligned trajectory
+    aligned_pred_xyz = pred_rotated + gt_centroid
+    
+    return aligned_pred_xyz, scale, R, t
+
 def scale_lse_solver(X, Y):
     """Least-sqaure-error solver
     Compute optimal scaling factor so that s(X)-Y is minimum
@@ -79,9 +136,21 @@ class KittiEvalOdom():
         vo_eval = KittiEvalOdom()
         vo_eval.eval(gt_pose_txt_dir, result_pose_txt_dir)
     """
-    def __init__(self):
+    def __init__(self, dataset_type='kitti'):
+        """
+        Args:
+            dataset_type (str): 'kitti' or 'vkitti2'
+        """
+        # if dataset_type.lower() in ['vkitti2', 'vkitti']:
+        #     # VKitti2 trajectory lengths: 711m, 254m, 51.9m, 113m, 332m
+        #     # Using shorter intervals to evaluate shorter sequences effectively
+        #     self.lengths = [5, 10, 20, 30, 50, 100, 150, 200, 250, 300, 400, 500, 600, 700]
+        # else:
+        #     # Original KITTI odometry evaluation lengths
         self.lengths = [100, 200, 300, 400, 500, 600, 700, 800]
+        
         self.num_lengths = len(self.lengths)
+        self.dataset_type = dataset_type
 
     def load_poses_from_txt(self, file_name):
         """Load poses from txt (KITTI format)
@@ -347,7 +416,10 @@ class KittiEvalOdom():
         plt.xlabel('x (m)', fontsize=fontsize_)
         plt.ylabel('z (m)', fontsize=fontsize_)
         fig.set_size_inches(10, 10)
-        png_title = "sequence_{:02}".format(seq)
+        if isinstance(seq, int):
+            png_title = "sequence_{:02}".format(seq)
+        else:
+            png_title = "sequence_{}".format(seq)
         fig_pdf = self.plot_path_dir + "/" + png_title + ".pdf"
         plt.savefig(fig_pdf, bbox_inches=None, pad_inches=0,dpi=200)
         plt.close(fig)
@@ -374,7 +446,8 @@ class KittiEvalOdom():
         plt.xlabel('Path Length (m)', fontsize=fontsize_)
         plt.legend(loc="upper right", prop={'size': fontsize_})
         fig.set_size_inches(5, 5)
-        fig_pdf = self.plot_error_dir + "/trans_err_{}.pdf".format(seq)
+        seq_str = "{:02}".format(seq) if isinstance(seq, int) else str(seq)
+        fig_pdf = self.plot_error_dir + "/trans_err_{}.pdf".format(seq_str)
         plt.savefig(fig_pdf, bbox_inches='tight', pad_inches=0)
         plt.close(fig)
 
@@ -394,7 +467,7 @@ class KittiEvalOdom():
         plt.xlabel('Path Length (m)', fontsize=fontsize_)
         plt.legend(loc="upper right", prop={'size': fontsize_})
         fig.set_size_inches(5, 5)
-        fig_pdf = self.plot_error_dir + "/rot_err_{}.pdf".format(seq)
+        fig_pdf = self.plot_error_dir + "/rot_err_{}.pdf".format(seq_str)
         plt.savefig(fig_pdf, bbox_inches='tight', pad_inches=0)
         plt.close(fig)
 
@@ -587,12 +660,19 @@ class KittiEvalOdom():
         for seqi in self.eval_seqs:
             self.all_file_names = seqi.split(',')
             self.all_file_names = [ni for ni in self.all_file_names]
-            i = int(self.all_file_names[0])
-            #assert i>0 and i<11
-
-            # Read pose txt
-            self.cur_seq = '{:02}'.format(i)
-            file_name = '{:02}.txt'.format(i)
+            
+            # Support both numeric and string sequence IDs
+            first_seq_name = str(self.all_file_names[0])
+            try:
+                i = int(first_seq_name)
+                self.cur_seq = '{:02}'.format(i)
+                file_name = '{:02}.txt'.format(i)
+                seq_id = i  # For plotting
+            except ValueError:
+                # String sequence ID (e.g., "Scene99")
+                self.cur_seq = first_seq_name
+                file_name = '{}.txt'.format(first_seq_name)
+                seq_id = first_seq_name  # For plotting
 
             all_pose_results = []
             for k in range(len(self.all_file_names)):
@@ -602,6 +682,7 @@ class KittiEvalOdom():
                 poses_gt = self.load_poses_from_txt(self.gt_dir + "/" + file_name)
                 self.result_file_name = result_dir+"/"+k_file_name
                 print("result file name ", self.result_file_name)
+                print("gt file name ", self.gt_dir + "/" + file_name)
 
                 # Pose alignment to first frame
                 idx_0 = sorted(list(poses_result.keys()))[0]
@@ -633,8 +714,9 @@ class KittiEvalOdom():
                         poses_result[cnt][:3, 3] *= scale
                         if alignment=="7dof" or alignment=="6dof":
                             poses_result[cnt] = align_transformation @ poses_result[cnt]
-                
+
                 # add all pose results
+                
                 all_pose_results.append(poses_result)
 
                 # compute sequence errors
@@ -671,7 +753,7 @@ class KittiEvalOdom():
                 self.write_result(f, self.all_file_names[k], [ave_t_err, ave_r_err, ate, rpe_trans, rpe_rot])
 
             # Plotting all trajectories into one fig. onece.
-            self.plot_trajectory(poses_gt, all_pose_results, i, plot_keys)
+            self.plot_trajectory(poses_gt, all_pose_results, seq_id, plot_keys)
             
             
         f.close()    

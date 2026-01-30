@@ -17,10 +17,31 @@ from .hdvo import HDVO
 import time 
 from hdvo.models.utils.stereo_warping import *
 from hdvo.models.utils.temporal_warping import *
-
+import os
 
 @HYBRID_METHOD.register_module()
 class StereoHDVOPosesup(HDVO):
+    def _save_depth_vis(self, depth_tensor, save_path):
+        """临时保存深度图的彩色可视化。depth_tensor: (B,1,H,W) or (B,H,W) torch.Tensor"""
+        import os
+        import matplotlib.pyplot as plt
+        import numpy as np
+        if isinstance(depth_tensor, torch.Tensor):
+            depth = depth_tensor.squeeze().detach().cpu().numpy()
+        else:
+            depth = depth_tensor
+        if depth.ndim == 2:
+            depth = depth[None, ...]
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        for i, d in enumerate(depth):
+            plt.figure(figsize=(8, 4))
+            plt.axis('off')
+            vmin = np.percentile(d, 2)
+            vmax = np.percentile(d, 98)
+            plt.imshow(d, cmap='plasma', vmin=vmin, vmax=vmax)
+            plt.colorbar(fraction=0.03, pad=0.04)
+            plt.savefig(f"{save_path}_vis_{i}.png", bbox_inches='tight', pad_inches=0)
+            plt.close()
     def __init__(self, depth_net=None, 
                  segment_net=None,
                  pose_net=None, 
@@ -37,6 +58,7 @@ class StereoHDVOPosesup(HDVO):
                  bidirection = False,
                  use_stereo_prediction=False,
                  pretrain=None,
+                 vkitti2_flag=False,
                  **kwargs):
         super(StereoHDVOPosesup, self).__init__(depth_net, segment_net, pose_net, brightness_net, 
                                        occ_mask, homo_mask, stereo_head, ddvo_head, smooth_loss, ddvo_module, 
@@ -44,6 +66,8 @@ class StereoHDVOPosesup(HDVO):
 
         self.timer = dict(sum_time=0, count=0, avg_time=0, f0_time=0, fps=0)
         self.save_last_pose = None
+        self.vkitti2_flag = vkitti2_flag
+        self.vis_id = 0
         if pretrain is not None:
             self.__init_weights(pretrain)
 
@@ -67,7 +91,6 @@ class StereoHDVOPosesup(HDVO):
             ref_left_imgs, cur_left_imgs = left_imgs[:,0], left_imgs[:,1]
             ref_right_imgs, cur_right_imgs = right_imgs[:,0], right_imgs[:,1]
             ref_disps = self.depth_net(ref_left_imgs, ref_right_imgs)
-             
             
             if not isinstance(ref_disps, (list, tuple)): ref_disps = [ref_disps]
             for level, ref_disp in enumerate(ref_disps): 
@@ -81,11 +104,15 @@ class StereoHDVOPosesup(HDVO):
                 # direct head 
                 # pre direct head 
                 abs_poses = kwargs['pose'] # B T 4 4 load gt pose
-                 
+                
+                # if self.vkitti2_flag:
+                #     # initcTr = torch.linalg.solve(abs_poses[:,0,:,:], abs_poses[:,1,:,:])
+                #     initcTr = (abs_poses[:,0,:,:].double() @ torch.linalg.inv(abs_poses[:,1,:,:].double())).float()
+                # else:
                 #initcTr = torch.linalg.solve(abs_poses[:,1,:,:], abs_poses[:,0,:,:])
-                initcTr = (torch.linalg.inv(abs_poses[:,0,:,:].double()) @ abs_poses[:,1,:,:].double()).float()
-                 
-
+                initcTr = (torch.linalg.inv(abs_poses[:,1,:,:].double()) @ abs_poses[:,0,:,:].double()).float()
+                    
+                # kwargs["img_metas"][0]["left_depth_paths"]
                 #masks = (ref_depth > 1) & (ref_depth < 100)
                 masks = None
                 ddvoloss = self.ddvo_head(source_img=cur_left_imgs, target_depth=ref_depth,
@@ -179,12 +206,22 @@ class StereoHDVOPosesup(HDVO):
         outputs[0] = depths.detach().cpu().numpy()
         outputs[1] = kwargs["left_depths"][:,0].detach().cpu().numpy() if "left_depths" in kwargs.keys() else []
 
+        # # 临时可视化保存 pred_depths 和 left_depths
+        # save_dir = kwargs.get('save_vis_dir', './debug_depth_vis')
+        
+        # self._save_depth_vis(depths, os.path.join(save_dir, f'{self.vis_id}_pred_depths'))
+        
+        # self._save_depth_vis(kwargs["left_depths"][:,0], os.path.join(save_dir, f'{self.vis_id}_left_depths'))
+        # self.vis_id += 1
+
         if self.pose_net is not None:
             initcTr, pose_6d = self.pose_net(left_imgs) # cTr 
             print("using posenet")
         else:  
             if self.save_last_pose is None:
-                self.save_last_pose = torch.eye(4).to(left_imgs.device).unsqueeze(0).repeat(B,1,1)
+                abs_poses = kwargs['pose'] # B T 4 4 load gt pose
+                self.save_last_pose = torch.linalg.solve(abs_poses[:,1,:,:], abs_poses[:,0,:,:])
+                #self.save_last_pose = torch.eye(4).to(left_imgs.device).unsqueeze(0).repeat(B,1,1)
             initcTr = self.save_last_pose
         
         #pred_pose = initcTr
@@ -216,8 +253,8 @@ class StereoHDVOPosesup(HDVO):
             self.timer["avg_time"] = (self.timer["sum_time"]-self.timer["f0_time"]) / (self.timer["count"]-1)
             self.timer["fps"] = 1 / self.timer["avg_time"]
             print("avg_time: ", self.timer["avg_time"])
-            print("depthtime: ", t_vo-t0)
-            print("ddvotime: ", t1-t_vo)
+            # print("depthtime: ", t_vo-t0)
+            # print("ddvotime: ", t1-t_vo)
             print("fps: ", self.timer["fps"])
 
         outputs[4] = pred_pose.detach().cpu().numpy() if isinstance(pred_pose, torch.Tensor)\

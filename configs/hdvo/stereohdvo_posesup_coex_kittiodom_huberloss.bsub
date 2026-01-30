@@ -26,6 +26,17 @@ conda activate hdvo
 
 export LD_LIBRARY_PATH=/home/izi2sgh/PROJECT/hdvo/openrox/cmake:$LD_LIBRARY_PATH
 
+export LD_LIBRARY_PATH=/home/nvidia/ziming/hdvo/openrox/cmake:$LD_LIBRARY_PATH
+
+
+OMP_NUM_THREADS=12 \
+python tools/test.py \
+  configs/hdvo/stereohdvo_posesup_coex_kittiodom_huberloss.py \
+  work_dirs/stereohdvo_posesup_coex_kittiodom_huberloss/iter_40000.pth \
+  --launcher none \
+  --eval EPE 3PE D1 \
+  --test_seq_id 09 
+
 OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12860 \
   tools/test.py configs/hdvo/stereohdvo_posesup_coex_kittiodom_huberloss.py \
    work_dirs/stereohdvo_posesup_coex_kittiodom_huberloss/iter_40000.pth   \

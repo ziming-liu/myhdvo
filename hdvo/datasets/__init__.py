@@ -18,3 +18,4 @@ from .kittidepth_eigen import KITTIDepthEigenDataset
 from .kittidepth_odometry import KITTIOdometryDataset
 from .kitti_depth_stereo_dataset import KittiDepthStereoDataset
 from .multistereodataset import MultiStereoDataset
+from .vkitti2_dataset import VKitti2Dataset

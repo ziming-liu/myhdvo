@@ -144,6 +144,63 @@ class KITTIOdometryDataset(BaseDataset):
         print(f"num samples {len(infos[:self.end_id])}")
         return  infos[:self.end_id]
     
+    def _align_trajectory_sim3(self, pred_xyz, gt_xyz):
+        """
+        Align predicted trajectory to ground truth using Sim3 alignment 
+        (scale + rotation + translation). This is similar to Umeyama alignment.
+        
+        Args:
+            pred_xyz: Predicted trajectory (N, 3)
+            gt_xyz: Ground truth trajectory (N, 3)
+            
+        Returns:
+            aligned_pred_xyz: Aligned predicted trajectory (N, 3)
+            scale: Scale factor
+            R: Rotation matrix (3, 3)
+            t: Translation vector (3,)
+        """
+        # Ensure same length
+        min_len = min(len(pred_xyz), len(gt_xyz))
+        pred_xyz = pred_xyz[:min_len]
+        gt_xyz = gt_xyz[:min_len]
+        
+        # Compute centroids
+        pred_centroid = np.mean(pred_xyz, axis=0)
+        gt_centroid = np.mean(gt_xyz, axis=0)
+        
+        # Center the trajectories
+        pred_centered = pred_xyz - pred_centroid
+        gt_centered = gt_xyz - gt_centroid
+        
+        # Compute scale
+        pred_scale = np.sqrt(np.mean(np.sum(pred_centered**2, axis=1)))
+        gt_scale = np.sqrt(np.mean(np.sum(gt_centered**2, axis=1)))
+        scale = gt_scale / pred_scale if pred_scale > 0 else 1.0
+        
+        # Scale the prediction
+        pred_scaled = pred_centered * scale
+        
+        # Compute rotation using SVD
+        H = pred_scaled.T @ gt_centered
+        U, S, Vt = np.linalg.svd(H)
+        R = Vt.T @ U.T
+        
+        # Ensure proper rotation (det(R) = 1)
+        if np.linalg.det(R) < 0:
+            Vt[-1, :] *= -1
+            R = Vt.T @ U.T
+        
+        # Apply rotation
+        pred_rotated = (R @ pred_scaled.T).T
+        
+        # Compute translation
+        t = gt_centroid - pred_centroid * scale
+        
+        # Final aligned trajectory
+        aligned_pred_xyz = pred_rotated + gt_centroid
+        
+        return aligned_pred_xyz, scale, R, t
+    
     def evaluate(self, results, gt_labels=None, metrics='EPE', logger=None, eval_config=None, **kwargs):
         
         gt_path = self.kitti_rawdata_path
@@ -336,9 +393,46 @@ class KITTIOdometryDataset(BaseDataset):
                     str_pose =  [  str(pp) for pp in gt_abs_pose_list[p_idx].reshape(-1)[:12].tolist()]
                     f.write(' '.join(str_pose)+'\n')
             
+            # Apply SIM3 alignment and save aligned poses
+            print("\n### Applying SIM3 alignment to predicted poses ###")
+            pred_xyz = np.array([pose[:3, 3] for pose in pred_abs_pose_list])
+            gt_xyz = np.array([pose[:3, 3] for pose in gt_abs_pose_list])
+            
+            aligned_pred_xyz, scale, R, t = self._align_trajectory_sim3(pred_xyz, gt_xyz)
+            print(f"SIM3 alignment - Scale factor: {scale:.6f}")
+            
+            # Create aligned pose matrices
+            pred_abs_pose_list_aligned = []
+            for p_idx in range(len(pred_abs_pose_list)):
+                aligned_pose = pred_abs_pose_list[p_idx].copy()
+                # Apply rotation and scale to translation
+                aligned_pose[:3, 3] = aligned_pred_xyz[p_idx]
+                # Apply rotation to rotation part
+                aligned_pose[:3, :3] = R @ aligned_pose[:3, :3]
+                pred_abs_pose_list_aligned.append(aligned_pose)
+            
+            # Save aligned poses
+            result_dir_aligned = os.path.join(eval_config["cfg"].work_dir, 
+                                                f"pred_poses_{self.test_seq_id}_aligned_sim3_"+time_str+str(random.randrange(10000,19999)))
+            if not os.path.exists(result_dir_aligned):
+                os.makedirs(result_dir_aligned)
+            pred_pose_path_aligned = os.path.join(result_dir_aligned, "{}.txt".format(self.test_seq_id))
+            
+            with open(pred_pose_path_aligned, 'w') as f:
+                for p_idx in range(len(pred_abs_pose_list_aligned)):
+                    str_pose =  [  str(pp) for pp in pred_abs_pose_list_aligned[p_idx].reshape(-1)[:12].tolist()]
+                    f.write(' '.join(str_pose)+'\n')
+            
+            print(f"Saved SIM3-aligned poses to {pred_pose_path_aligned}")
+            print(f"Number of aligned poses: {len(pred_abs_pose_list_aligned)}")
+            
             # evaluate pose estimation 
             print(self.test_seq_id)
             if int(self.test_seq_id) >10: return 0
+            
+            print("\n" + "="*70)
+            print(f"=== ORIGINAL Pose Evaluation for {self.test_seq_id} ===")
+            print("="*70)
             eval_tool = KittiEvalOdom()
             
             
@@ -351,7 +445,7 @@ class KITTIOdometryDataset(BaseDataset):
                         result_dir,
                         alignment=None, # ['scale', 'scale_7dof', '7dof', '6dof'],
                         seqs=[str(self.test_seq_id)], # e.g. 09,09ep2,09ep3,09ep4 10,10ep2",
-                        plot_keys=[str(self.test_seq_id)+str(time.time())] # + args.checkpoint.split('.')[-2].split('/')[-1]  #  e.g. 10epoch1 10epoch2 ",
+                        plot_keys=[str(self.test_seq_id)+"_original_"+str(time.time())] # + args.checkpoint.split('.')[-2].split('/')[-1]  #  e.g. 10epoch1 10epoch2 ",
                         )
             
             # eval tool2
@@ -360,6 +454,34 @@ class KITTIOdometryDataset(BaseDataset):
             print(dict_tool2)
             pose_eval = kittiOdomEval(dict_tool2)
             pose_eval.eval(toCameraCoord=dict_tool2['toCameraCoord'])   # set the value according to the predicted results
+            
+            # Evaluate aligned poses
+            print("\n" + "="*70)
+            print(f"=== SIM3-ALIGNED Pose Evaluation for {self.test_seq_id} ===")
+            print("="*70)
+            
+            eval_tool_aligned = KittiEvalOdom()
+            print("Evaluate aligned result in  {}".format(result_dir_aligned))
+            
+            if eval_config["cfg"].dataset_type != "EurocMavDataset" and eval_config["cfg"].dataset_type != "MidAirDataset" :
+                eval_tool_aligned.eval(
+                        gt_dir,
+                        result_dir_aligned,
+                        alignment=None, # Already aligned, so no additional alignment
+                        seqs=[str(self.test_seq_id)],
+                        plot_keys=[str(self.test_seq_id)+"_sim3_aligned_"+str(time.time())]
+                        )
+            
+            # eval tool2 for aligned poses
+            dict_tool2_aligned = {"gt_dir":gt_dir, "result_dir": result_dir_aligned, "eva_seqs": f"{self.test_seq_id}_pred",\
+                "toCameraCoord": False}
+            print(dict_tool2_aligned)
+            pose_eval_aligned = kittiOdomEval(dict_tool2_aligned)
+            pose_eval_aligned.eval(toCameraCoord=dict_tool2_aligned['toCameraCoord'])
+            
+            print("\n" + "="*70)
+            print(f"=== All Pose Evaluations Completed for {self.test_seq_id} ===")
+            print("="*70 + "\n")
 
 
 

@@ -122,7 +122,8 @@ def main():
     else:
         cfg.gpu_ids = range(1) if args.gpus is None else range(args.gpus)
     print("gpu ids",cfg.gpu_ids)
-    print("address , port ",os.environ["MASTER_ADDR"],os.environ["MASTER_PORT"])
+    if "MASTER_ADDR" in os.environ and "MASTER_PORT" in os.environ:
+        print("address , port ",os.environ["MASTER_ADDR"],os.environ["MASTER_PORT"])
     # init distributed env first, since logger depends on the dist info.
     if args.launcher == 'none':
         distributed = False

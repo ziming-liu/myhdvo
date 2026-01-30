@@ -34,6 +34,213 @@ from hdvo.datasets import build_dataloader, build_dataset
 from hdvo.models import build_model
 from hdvo.utils import collect_env, get_root_logger, register_module_hooks
 
+
+# ============================================================================
+# Result Processing and Evaluation Helper Functions
+# ============================================================================
+
+def save_depth_results(outputs, args, cfg, test_seq_id, logger):
+    """
+    Save depth prediction and ground truth depth maps.
+    
+    Args:
+        outputs: Model outputs containing [pred_depths, gt_depths, ...]
+        args: Command line arguments
+        cfg: Config object
+        test_seq_id: Current test sequence ID
+        logger: Logger instance
+    """
+    if args.load_pred_depth is not None or len(outputs[0]) == 0:
+        return
+    
+    from outputs_proc.save_load_depth import save_depth_maps
+    checkpoint_name = args.checkpoint.split('/')[-1].split('.')[0]
+    
+    # Process and save predicted left depth maps
+    pred_depth = outputs[0].copy()
+    pred_depth = [item[0] for item in pred_depth]  # Extract left depths
+    
+    # Clip invalid depth values
+    for i in range(len(pred_depth)):
+        pred_depth[i][pred_depth[i] > args.max_depth] = args.max_depth
+        pred_depth[i][np.isnan(pred_depth[i])] = args.max_depth
+        pred_depth[i][np.isinf(pred_depth[i])] = args.max_depth
+    
+    if args.save_depth:
+        logger.info(f"Saving left depth maps for {test_seq_id}")
+        save_depth_maps(
+            cfg.dataset_type, test_seq_id, pred_depth, cfg.work_dir,
+            checkpoint_name, stereo_view="left",
+            min_depth=1, max_depth=args.max_depth, first_frame_id=0
+        )
+        
+        # Save ground truth left depth maps
+        if len(outputs[1]) > 0:
+            gt_depth = [item[0] for item in outputs[1].copy()]
+            logger.info(f"Saving GT left depth maps for {test_seq_id}")
+            save_depth_maps(
+                cfg.dataset_type, test_seq_id, gt_depth, cfg.work_dir,
+                checkpoint_name, stereo_view="left", ifgtdepth=True,
+                min_depth=1, max_depth=args.max_depth, first_frame_id=0
+            )
+        
+        # Save right depth maps if available
+        if len(outputs[0][0]) == 2:
+            pred_depth_right = [item[1] for item in outputs[0].copy()]
+            logger.info(f"Saving right depth maps for {test_seq_id}")
+            save_depth_maps(
+                cfg.dataset_type, test_seq_id, pred_depth_right, cfg.work_dir,
+                checkpoint_name, stereo_view="right",
+                min_depth=1, max_depth=6000, first_frame_id=0
+            )
+        
+        logger.info("Done saving depth maps")
+
+
+def save_mask_results(outputs, args, cfg, test_seq_id, logger):
+    """
+    Save predicted and ground truth mask maps.
+    
+    Args:
+        outputs: Model outputs containing [..., pred_masks, gt_masks, ...]
+        args: Command line arguments
+        cfg: Config object
+        test_seq_id: Current test sequence ID
+        logger: Logger instance
+    """
+    from outputs_proc.save_load_mask import save_mask_maps
+    checkpoint_name = args.checkpoint.split('/')[-1].split('.')[0]
+    
+    # Save predicted masks
+    if len(outputs[2]) > 0:
+        # Determine mask types based on output shape
+        if outputs[2][0].shape[0] == 6:
+            pred_mask_types = [
+                "left_temporal_multi_masks", "left_homo_mask",
+                "left_stc_t_mask", "left_stc_s_mask",
+                "left_temporal_edge_mask", "left_stereo_edge_mask"
+            ]
+        else:
+            pred_mask_types = [
+                "left_temporal_multi_masks",
+                "right_temporal_multi_masks"
+            ]
+        
+        num_mask_types = len(outputs[2][0]) if isinstance(outputs[2][0], list) else outputs[2][0].shape[0]
+        
+        for mask_idx in range(num_mask_types):
+            mask_type = pred_mask_types[mask_idx]
+            logger.info(f"Saving {mask_type} for {test_seq_id}")
+            pred_mask = [item[mask_idx] for item in outputs[2]]
+            save_mask_maps(
+                cfg.dataset_type, mask_type, test_seq_id, pred_mask,
+                cfg.work_dir, checkpoint_name, first_frame_id=0,
+                iftransparent=args.iftransparent
+            )
+        logger.info("Done saving predicted masks")
+    
+    # Save ground truth masks
+    if len(outputs[3]) > 0:
+        gt_mask_types = [
+            "gt_left_temporal_multi_masks",
+            "gt_right_temporal_multi_masks"
+        ]
+        for mask_idx in range(len(outputs[3][0])):
+            mask_type = gt_mask_types[mask_idx]
+            logger.info(f"Saving {mask_type} for {test_seq_id}")
+            gt_mask = [item[mask_idx] for item in outputs[3]]
+            save_mask_maps(
+                cfg.dataset_type, mask_type, test_seq_id, gt_mask,
+                cfg.work_dir, checkpoint_name, first_frame_id=0
+            )
+        logger.info("Done saving GT masks")
+
+
+def save_sequence_results(outputs, args, cfg, test_seq_id, logger):
+    """
+    Save all results for a single test sequence.
+    
+    Args:
+        outputs: Model outputs containing [pred_depths, gt_depths, pred_masks, gt_masks, ...]
+        args: Command line arguments
+        cfg: Config object
+        test_seq_id: Current test sequence ID
+        logger: Logger instance
+    """
+    rank, _ = get_dist_info()
+    
+    if rank != 0:
+        return
+    
+    logger.info(f"Saving results for sequence {test_seq_id}")
+    
+    # Save output pickle if requested
+    if args.save_pkl:
+        result_filename = f'test_outputs_{test_seq_id}.pkl'
+        result_path = osp.join(cfg.work_dir, result_filename)
+        logger.info(f'Writing results to {result_path}')
+        mmcv.dump(outputs, result_path)
+    
+    # Determine evaluation tasks
+    if "eval_tasks" not in cfg:
+        eval_tasks = ["depth"] if len(outputs[0]) > 0 else []
+        cfg.eval_tasks = eval_tasks
+    
+    # Save depth maps
+    save_depth_results(outputs, args, cfg, test_seq_id, logger)
+    
+    # Save mask maps
+    save_mask_results(outputs, args, cfg, test_seq_id, logger)
+    
+    logger.info(f"Finished saving results for sequence {test_seq_id}")
+
+
+def evaluate_sequence(outputs, dataset, args, cfg, test_seq_id, logger, eval_config):
+    """
+    Evaluate results for a single test sequence.
+    
+    Args:
+        outputs: Model outputs
+        dataset: Dataset instance
+        args: Command line arguments
+        cfg: Config object
+        test_seq_id: Current test sequence ID
+        logger: Logger instance
+        eval_config: Evaluation configuration
+        
+    Returns:
+        eval_results: Evaluation metrics dictionary (or None if no evaluation)
+    """
+    rank, _ = get_dist_info()
+    
+    if rank != 0:
+        return None
+    
+    if args.no_gt:
+        logger.info(f"Skipping evaluation for sequence {test_seq_id} (no ground truth)")
+        return None
+    
+    logger.info(f"Evaluating sequence {test_seq_id}...")
+    
+    eval_config["cfg"] = cfg.copy()
+    gt_depths = outputs[1] if len(outputs[1]) > 1 else None
+    
+    eval_results = dataset.evaluate(
+        outputs, gt_depths,
+        metrics=args.eval,
+        logger=logger,
+        eval_config=eval_config
+    )
+    
+    logger.info(f"Completed evaluation for sequence {test_seq_id}\n")
+    
+    return eval_results
+
+
+# ============================================================================
+# Command Line Argument Parser
+# ============================================================================
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description='MMAction2 test (and eval) a model')
@@ -294,8 +501,22 @@ def main():
     # set cudnn benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
-    cfg.data.test.test_mode = True
-
+    
+    # Check if test config has multiple sequences
+    base_test_cfg = cfg.data.test
+    if isinstance(base_test_cfg, dict) and 'test_sequences' in base_test_cfg:
+        # Multiple sequences in test_sequences list
+        test_sequences = base_test_cfg.test_sequences
+        logger.info(f'Testing on {len(test_sequences)} sequence(s) with shared config')
+    elif isinstance(base_test_cfg, list):
+        # Legacy format: list of complete configs
+        test_sequences = [{'_full_config': cfg} for cfg in base_test_cfg]
+        logger.info(f'Testing on {len(test_sequences)} sequence(s) with individual configs')
+    else:
+        # Single sequence
+        test_sequences = [{}]
+        logger.info('Testing on single sequence')
+    
     if cfg.model.get('test_cfg') is None and cfg.get('test_cfg') is None:
         cfg.model.setdefault('test_cfg',
                              dict(average_clips=args.average_clips))
@@ -320,18 +541,7 @@ def main():
     # The flag is used to register module's hooks
     cfg.setdefault('module_hooks', [])
 
-    # build the dataloader
-    dataset = build_dataset(cfg.data.test, dict(test_mode=True))
-    dataloader_setting = dict(
-        videos_per_gpu=cfg.data.get('videos_per_gpu', 1),
-        workers_per_gpu=cfg.data.get('workers_per_gpu', 1),
-        dist=distributed,
-        shuffle=False)
-    dataloader_setting = dict(dataloader_setting,
-                              **cfg.data.get('test_dataloader', {}))
-    data_loader = build_dataloader(dataset, **dataloader_setting)
-
-    # build the model and load checkpoint
+    # build the model and load checkpoint (only once)
     model = build_model(
         cfg.model, train_cfg=None, test_cfg=cfg.get('test_cfg'))
     
@@ -348,129 +558,124 @@ def main():
         
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
- 
-    if args.output_pkl is not None:
-        outputs = mmcv.load(args.output_pkl)
+    
+    # Wrap model for distributed/single GPU testing (only once)
+    if not distributed:
+        model = MMDataParallel(model, device_ids=[0])
     else:
-        if not distributed:
-            model = MMDataParallel(model, device_ids=[0])
-            outputs = single_gpu_test(model, data_loader)
+        model = MMDistributedDataParallel(
+            model.cuda(),
+            device_ids=[torch.cuda.current_device()],
+            broadcast_buffers=False)
+    
+    # Loop through each test sequence
+    for test_idx, seq_info in enumerate(test_sequences):
+        logger.info(f'\n{"="*60}')
+        logger.info(f'Testing sequence {test_idx+1}/{len(test_sequences)}: {seq_info.get("test_seq_id", f"seq_{test_idx}")}')
+        logger.info(f'{"="*60}\n')
+        args.test_seq_id = seq_info.get('test_seq_id', cfg.get('test_seq_id', f"seq_{test_idx}"))
+        # Build test config for current sequence
+        if '_full_config' in seq_info:
+            # Legacy format: use full config
+            current_test_cfg = copy.deepcopy(seq_info['_full_config'])
         else:
-            model = MMDistributedDataParallel(
-                model.cuda(),
-                device_ids=[torch.cuda.current_device()],
-                broadcast_buffers=False)
-            outputs = multi_gpu_test(model, data_loader, args.tmpdir,
-                                    args.gpu_collect)
+            # New format: merge sequence info into base config
+            current_test_cfg = copy.deepcopy(base_test_cfg)
+            # Remove test_sequences from config to avoid confusion
+            if 'test_sequences' in current_test_cfg:
+                del current_test_cfg['test_sequences']
+            # Update with sequence-specific info
+            current_test_cfg.update(seq_info)
+        
+        current_test_cfg.test_mode = True
+        
+        # Override test_seq_id if provided in command line args
+        if args.test_seq_id is not None and if_still_dataset==0:
+            logger.info("# update the test seq id to -{}-  ".format(str(args.test_seq_id)))
+            cfg.test_seq_id = args.test_seq_id
+            if cfg.dataset_type == "VKITTI2StereoDataset" or cfg.dataset_type == "VKitti2Dataset":
+                current_test_cfg.test_seq_id = "Scene"+args.test_seq_id
+            else:
+                current_test_cfg.test_seq_id = args.test_seq_id
+        
+        test_seq_id = current_test_cfg.get('test_seq_id', cfg.get('test_seq_id', '99'))
+        logger.info(f'Test sequence ID: {test_seq_id}')
+        
+        if args.load_pred_depth is not None:
+            print("directly load predicted depths")
+            path_list = args.load_pred_depth.strip().split(',')
+            pl_cfg = current_test_cfg.pipeline[-2:]
+            for idx, pl in enumerate(pl_cfg):
+                if len(path_list) == 1:
+                    pl['keys'].append('left_pred_depths')
+                if len(path_list) == 2:
+                    pl['keys'].append('left_pred_depths')
+                    pl['keys'].append('right_pred_depths')
+            
+            if "end_id" not in current_test_cfg:
+                current_test_cfg['end_id'] = -1
+            test_seq_id_for_load_depth = test_seq_id
+            if cfg.dataset_type == "VKITTI2StereoDataset" or cfg.dataset_type == "VKitti2Dataset":
+                test_seq_id_for_load_depth = args.test_seq_id if args.test_seq_id is not None else test_seq_id
+            if len(path_list) == 1:
+                current_test_cfg['pred_depth_dir_left'] =  osp.join(cfg.work_dir, f"{path_list[0]}_pred_depths_left_{cfg.dataset_type}_seq"+ test_seq_id_for_load_depth)
+            if len(path_list) == 2:
+                current_test_cfg['pred_depth_dir_left'] =  osp.join(cfg.work_dir, f"{path_list[0]}_pred_depths_left_{cfg.dataset_type}_seq"+ test_seq_id_for_load_depth)
+                current_test_cfg['pred_depth_dir_right'] =  osp.join(cfg.work_dir, f"{path_list[0]}_pred_depths_right_{cfg.dataset_type}_seq"+ test_seq_id_for_load_depth)
+        
+        logger.info(f"Current test config keys: {list(current_test_cfg.keys())}")
+        
+        if args.test_range is not None:   
+            logger.info("# update the test range to -{}-  ".format(str(args.test_range)))
+            current_test_cfg.test_range = (int(args.test_range.split(',')[0]), int(args.test_range.split(',')[1]))
+        
+        # build the dataloader for current sequence
+        dataset = build_dataset(current_test_cfg, dict(test_mode=True))
+        dataloader_setting = dict(
+            videos_per_gpu=cfg.data.get('videos_per_gpu', 1),
+            workers_per_gpu=cfg.data.get('workers_per_gpu', 1),
+            dist=distributed,
+            shuffle=False)
+        dataloader_setting = dict(dataloader_setting,
+                                  **cfg.data.get('test_dataloader', {}))
+        data_loader = build_dataloader(dataset, **dataloader_setting)
+        
+        logger.info(f'Dataset size: {len(dataset)} samples')
+ 
+        if args.output_pkl is not None:
+            outputs = mmcv.load(args.output_pkl)
+        else:
+            outputs = single_gpu_test(model, data_loader) if not distributed else multi_gpu_test(model, data_loader, args.tmpdir, args.gpu_collect)
             try:
-                print("\n #### direct vo running sum_time:{}, avg time: {} over {} frames ".format(model.module.directvo_timer["sum_time"], model.module.directvo_timer["avg_time"], model.module.directvo_timer["frames"]))
+                if hasattr(model, 'module') and hasattr(model.module, 'directvo_timer'):
+                    print("\n #### direct vo running sum_time:{}, avg time: {} over {} frames ".format(
+                        model.module.directvo_timer["sum_time"], 
+                        model.module.directvo_timer["avg_time"], 
+                        model.module.directvo_timer["frames"]))
             except:
                 print("no directvo_timer")
-    rank, _ = get_dist_info()
-    
-    num_outputs = len(outputs)
-    print("num_outputs: ", num_outputs)
-    """
-    outputs = [[], [], [], [], [] ] # [pred_depths], [gt_depths], [pred_masks], [gt_masks], [pred_poses], frame_dir
-    """
-
-    if "eval_tasks" in cfg:
-        task_flag = True
-        eval_tasks = cfg.eval_tasks
-    else:
-        task_flag = False
-        eval_tasks = []
-        eval_tasks.append("depth")
-        #eval_tasks.append("pose")
-        cfg.eval_tasks = eval_tasks
-
-    # evaluate the results of depth estimation
-    #if 'depth' in cfg.eval_tasks and cfg.work_dir is not None and 
-    if rank == 0:
-        # save results to cfg.work_dir
-        if args.save_pkl:
-            print(f"---save testouputs into {cfg.work_dir}>> 'test_outputs.pkl'")
-            result_path = osp.join(cfg.work_dir, 'test_outputs.pkl')
-            logger.info('\nwriting depth results to {}'.format(result_path))
-            mmcv.dump(outputs, result_path)  
-
-        if len(outputs[0]) == 0:
-            eval_tasks = []
-        if args.load_pred_depth is None and len(outputs[0])>0: # if we use existing depth, we don;t need to save again.
-            from outputs_proc.save_load_depth import save_depth_maps
-            pred_depth = outputs[0].copy()
-            pred_depth = [ item[0] for item in pred_depth] # left depths
-            for i in range(len(pred_depth)):
-                pred_depth[i][pred_depth[i]>args.max_depth] = args.max_depth
-                pred_depth[i][np.isnan(pred_depth[i])] = args.max_depth
-                pred_depth[i][np.isinf(pred_depth[i])] = args.max_depth
-            if args.save_depth:
-                print(f"--- save left depth maps into {cfg.work_dir}")
-                save_depth_maps(cfg.dataset_type, test_seq_id, pred_depth, cfg.work_dir, \
-                    args.checkpoint.split('/')[-1].split('.')[0], stereo_view="left", \
-                        min_depth =  1, max_depth=args.max_depth,first_frame_id=0  )
-            
-            gt_depth = outputs[1].copy()
-            gt_depth = [ item[0] for item in gt_depth] # gt left depths
-            if args.save_depth and len(outputs[1])>0:
-                print(f"--- save GT left depth maps into {cfg.work_dir}")
-                save_depth_maps(cfg.dataset_type, test_seq_id, gt_depth, cfg.work_dir, \
-                    args.checkpoint.split('/')[-1].split('.')[0], stereo_view="left", ifgtdepth=True, \
-                        min_depth =  1, max_depth=args.max_depth,first_frame_id=0  )
-
-            print("#done")
-            if len(outputs[0][0])==2 and args.save_depth: # left+right pred depths
-                print(f"--- save right depth maps into {cfg.work_dir}")
-                pred_depth = outputs[0].copy()
-                pred_depth = [item[1] for item in pred_depth] # right depths
-                save_depth_maps(cfg.dataset_type, test_seq_id, pred_depth, cfg.work_dir, \
-                args.checkpoint.split('/')[-1].split('.')[0], stereo_view="right", \
-                    min_depth =  1, max_depth=6000,first_frame_id=0  )
-                print("#done")
-
-        from outputs_proc.save_load_mask import save_mask_maps
         
-        # save pred masks (multi)
-        #print("output2 pred_mask: ",len(outputs[3]) )
-        if len(outputs[2])>0: # pred mask is not [] 
-            if outputs[2][0].shape[0]==6: # visualize all masks
-                pred_mask_types = ["left_temporal_multi_masks","left_homo_mask",
-                                "left_stc_t_mask", "left_stc_s_mask",
-                                "left_temporal_edge_mask", "left_stereo_edge_mask" ]
-            else:
-                pred_mask_types = ["left_temporal_multi_masks","right_temporal_multi_masks", ]
-            if isinstance(outputs[2][0], list):
-                num_mask_types = len(outputs[2][0])
-            else:
-                num_mask_types = outputs[2][0].shape[0]
-            for mask_idx in range(num_mask_types):
-                mask_type = pred_mask_types[mask_idx]
-                print(f"--- save {mask_type} maps into {cfg.work_dir}")
-                pred_mask = [item[mask_idx] for item in outputs[2]]
-                save_mask_maps(cfg.dataset_type, mask_type, test_seq_id, pred_mask, cfg.work_dir, \
-                    args.checkpoint.split('/')[-1].split('.')[0], first_frame_id=0, iftransparent=args.iftransparent )
-            print("#done")
-        # save GT mask (for vkitti2)
-        #print("output3 GTmask: ",len(outputs[3]) )
-        if len(outputs[3])>0: # pred mask is not [] 
-            gt_mask_types =  ["gt_left_temporal_multi_masks","gt_right_temporal_multi_masks", ]
-            for mask_idx in range(len(outputs[3][0])):
-                mask_type = gt_mask_types[mask_idx]
-                print(f"--- save {mask_type} maps into {cfg.work_dir}")
-                gt_mask = [item[mask_idx] for item in outputs[3]]
-                save_mask_maps(cfg.dataset_type, mask_type, test_seq_id, gt_mask, cfg.work_dir, \
-                    args.checkpoint.split('/')[-1].split('.')[0], first_frame_id=0 )
-                print("#done")
- 
-
-         
-        eval_config["cfg"] = cfg.copy()
-        if not args.no_gt:
-            print("evaluate !")
-            eval_results = dataset.evaluate(outputs, outputs[1] if len(outputs[1])>1 else None,
-                                                        metrics=args.eval,logger=logger, eval_config=eval_config )
-        #for name, val in eval_results.items():
-        #    logger.info(f'{name}: {val:.04f}')
+        # Get model outputs
+        logger.info(f"Sequence {test_seq_id} - {len(outputs)} output groups")
+        """
+        outputs format: [pred_depths, gt_depths, pred_masks, gt_masks, pred_poses, frame_dir]
+        """
+        
+        # Save results
+        save_sequence_results(outputs, args, cfg, test_seq_id, logger)
+        
+        # Evaluate results
+        eval_results = evaluate_sequence(
+            outputs, dataset, args, cfg, test_seq_id, logger, eval_config
+        )
+        
+        # End of loop for current test sequence
+        logger.info(f'Finished testing sequence {test_seq_id}\n')
+    
+    # All sequences tested
+    logger.info(f'\n{"="*60}')
+    logger.info(f'Completed testing all {len(test_sequences)} sequence(s)')
+    logger.info(f'{"="*60}\n')
  
 
 

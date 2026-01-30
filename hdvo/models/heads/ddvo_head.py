@@ -133,6 +133,10 @@ class PoseDDVOHead(nn.Module):
     def forward_train(self, source_img, target_depth, sTt, K, target_img, target_mask):
         warped = temporal_warp_core(source_img, target_depth, sTt, K, torch.linalg.inv(K), gt_map=target_img)
         valid_mask = (warped != 0).all(dim=1, keepdim=True).float().detach()
+        
+        # # Temporary visualization for debugging warping operation
+        # self._visualize_warping_debug(source_img, target_img, warped, valid_mask=valid_mask)
+        
         loss = self.loss(warped, target_img)
         loss = {k: (v * valid_mask).mean() for k, v in loss.items()}
         if target_mask is not None:
@@ -167,4 +171,96 @@ class PoseDDVOHead(nn.Module):
         ddvo_structloss = self.struct_loss(warped_ref, ref_img)
         loss[f"ddvo_structloss"] = ddvo_structloss #* (warped_ref[i]!=0).float().detach()
         
-        return loss 
+        return loss
+    
+    def _visualize_warping_debug(self, source_img, target_img, warped, valid_mask=None, save_dir='./debug_warp_vis'):
+        """
+        Temporary visualization function to check image warping operation.
+        Saves source, target, and warped images side by side for inspection.
+        
+        Args:
+            source_img: Source image tensor [B, C, H, W]
+            target_img: Target/reference image tensor [B, C, H, W]
+            warped: Warped image tensor [B, C, H, W]
+            valid_mask: Optional valid mask [B, 1, H, W]
+            save_dir: Directory to save visualization images
+        """
+        import os
+        import matplotlib.pyplot as plt
+        from datetime import datetime
+        
+        # Create save directory if it doesn't exist
+        os.makedirs(save_dir, exist_ok=True)
+        
+        # Only visualize the first sample in batch to avoid too many images
+        batch_idx = 0
+        
+        # Convert tensors to numpy arrays and normalize to [0, 1]
+        def tensor_to_numpy(img_tensor):
+            img = img_tensor[batch_idx].detach().cpu()
+            # Normalize to [0, 1] range
+            img = (img - img.min()) / (img.max() - img.min() + 1e-8)
+            # Convert from CxHxW to HxWxC
+            if img.shape[0] == 3:
+                img = img.permute(1, 2, 0).numpy()
+            else:
+                img = img.squeeze().numpy()
+            return img
+        
+        source_np = tensor_to_numpy(source_img)
+        target_np = tensor_to_numpy(target_img)
+        warped_np = tensor_to_numpy(warped)
+        
+        # Create figure with subplots
+        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+        
+        # Plot source image
+        axes[0, 0].imshow(source_np)
+        axes[0, 0].set_title('Source Image', fontsize=12)
+        axes[0, 0].axis('off')
+        
+        # Plot target image
+        axes[0, 1].imshow(target_np)
+        axes[0, 1].set_title('Target Image', fontsize=12)
+        axes[0, 1].axis('off')
+        
+        # Plot warped image
+        axes[0, 2].imshow(warped_np)
+        axes[0, 2].set_title('Warped Image', fontsize=12)
+        axes[0, 2].axis('off')
+        
+        # Plot difference: target - warped
+        diff = np.abs(target_np - warped_np)
+        axes[1, 0].imshow(diff)
+        axes[1, 0].set_title('Abs Difference (Target - Warped)', fontsize=12)
+        axes[1, 0].axis('off')
+        
+        # Plot valid mask if provided
+        if valid_mask is not None:
+            mask_np = valid_mask[batch_idx].detach().cpu().squeeze().numpy()
+            axes[1, 1].imshow(mask_np, cmap='gray')
+            axes[1, 1].set_title('Valid Mask', fontsize=12)
+        else:
+            axes[1, 1].text(0.5, 0.5, 'No Valid Mask', ha='center', va='center')
+            axes[1, 1].set_title('Valid Mask', fontsize=12)
+        axes[1, 1].axis('off')
+        
+        # Plot overlay: blend target and warped
+        if len(target_np.shape) == 3:
+            overlay = 0.5 * target_np + 0.5 * warped_np
+            axes[1, 2].imshow(overlay)
+            axes[1, 2].set_title('Overlay (0.5*Target + 0.5*Warped)', fontsize=12)
+        else:
+            axes[1, 2].text(0.5, 0.5, 'Cannot overlay grayscale', ha='center', va='center')
+            axes[1, 2].set_title('Overlay', fontsize=12)
+        axes[1, 2].axis('off')
+        
+        plt.tight_layout()
+        
+        # Save with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+        save_path = os.path.join(save_dir, f'warp_debug_{timestamp}.png')
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        print(f"[DEBUG] Warping visualization saved to: {save_path}") 

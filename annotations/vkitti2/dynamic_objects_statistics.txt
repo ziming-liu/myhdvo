@@ -1,0 +1,36 @@
+VKITTI2 Dynamic Objects Statistics (Clone Weather Condition)
+======================================================================
+
+Scene01:
+  Total unique objects: 93
+  Moving objects: 9
+  Static objects: 84
+
+Scene02:
+  Total unique objects: 17
+  Moving objects: 9
+  Static objects: 8
+
+Scene06:
+  Total unique objects: 15
+  Moving objects: 14
+  Static objects: 1
+
+Scene18:
+  Total unique objects: 21
+  Moving objects: 21
+  Static objects: 0
+
+Scene20:
+  Total unique objects: 127
+  Moving objects: 77
+  Static objects: 50
+
+
+Scenes sorted by number of moving objects:
+----------------------------------------------------------------------
+Scene20: 77 moving objects
+Scene18: 21 moving objects
+Scene06: 14 moving objects
+Scene01: 9 moving objects
+Scene02: 9 moving objects

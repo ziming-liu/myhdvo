@@ -54,7 +54,7 @@ class kittiOdomEval():
             seqs = config['eva_seqs'].split(',')
             self.eval_seqs = [str(s) for s in seqs]
 
-        self.eval_seqs = [s[:-5] for s in self.eval_seqs]    # xxxx_pred => xxxx
+        # self.eval_seqs = [s[:-5] for s in self.eval_seqs]    # xxxx_pred => xxxx
 
         # # Ref: https://github.com/MichaelGrupp/evo/wiki/Plotting
         # os.system("evo_config set plot_seaborn_style whitegrid \
@@ -591,10 +591,18 @@ class kittiOdomEval():
             print("___________________ seq {} _______________________".format(seq))
             eva_seq_dir = os.path.join(eval_dir, '{}_eval'.format(seq))
             pred_file_name = self.result_dir + '/{}.txt'.format(seq)
-            # pred_file_name = self.result_dir + '/{}.txt'.format(seq)
+            # Support string sequence IDs - no need to check if seq is in seqs_with_gt for numeric format
             gt_file_name   = self.gt_dir + '/{}.txt'.format(seq)
             save_file_name = eva_seq_dir + '/{}.pdf'.format(seq)
-            assert os.path.exists(pred_file_name), "File path error: {}".format(pred_file_name)
+            if not os.path.exists(pred_file_name):
+                print("Warning: Prediction file not found: {}".format(pred_file_name))
+                continue
+            if not os.path.exists(gt_file_name):
+                print("Warning: GT file not found: {}".format(gt_file_name))
+                # Continue without GT for visualization only
+                seq_in_gt = False
+            else:
+                seq_in_gt = True
 
             
             # ----------------------------------------------------------------------
@@ -609,7 +617,7 @@ class kittiOdomEval():
             if not os.path.exists(eva_seq_dir): os.makedirs(eva_seq_dir) 
             num_samples = len(poses_result)
 
-            if seq not in self.seqs_with_gt:
+            if not seq_in_gt:
                 self.calcSequenceErrors(poses_result, poses_result)
                 print ("\nSequence: " + str(seq))
                 print ('Distance (m): %d' % self.distance)

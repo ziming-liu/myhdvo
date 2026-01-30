@@ -46,6 +46,63 @@ import fire
 python tools/dataset_tools/kitti_odometry_annotation.py save_path name  test_mode 
 ```
 
+## VKitti2
+
+VKitti2 (Virtual KITTI 2) dataset can be downloaded from [official site](https://europe.naverlabs.com/research/computer-vision/proxy-virtual-worlds-vkitti-2/). This is a synthetic dataset with ground truth depth and camera poses.
+
+The dataset is organized as:
+
+```
+-vkitti2
+   |--Scene01
+         |--clone
+         |--15-deg-left
+         |--15-deg-right
+         |--30-deg-left
+         |--30-deg-right
+         |--fog
+         |--morning
+         |--overcast
+         |--rain
+         |--sunset
+              |--frames
+                    |--rgb
+                          |--Camera_0
+                          |--Camera_1
+                    |--depth
+                          |--Camera_0
+                          |--Camera_1
+              |--intrinsic.txt
+              |--extrinsic.txt
+              |--pose.txt
+              |--bbox.txt
+              |--colors.txt
+              |--info.txt
+   |--Scene02
+   |--Scene06
+   |--Scene18
+   |--Scene20
+```
+
+The annotations are put under `HDVO/annotations/vkitti2/`. 
+
+New annotations are generated with this script `tools/dataset_tools/vkitti2_annotation.py`:
+
+```bash
+# Generate annotations for specific scene and variation
+python tools/dataset_tools/vkitti2_annotation.py
+
+# The script can be modified to generate annotations for different scenes and variations
+# Available scenes: Scene01, Scene02, Scene06, Scene18, Scene20
+# Available variations: clone, 15-deg-left, 15-deg-right, 30-deg-left, 30-deg-right,
+#                       fog, morning, overcast, rain, sunset
+```
+
+Test the dataloader:
+```bash
+python test_vkitti2_loader.py
+```
+
 ## KITTI Stereo
 
 

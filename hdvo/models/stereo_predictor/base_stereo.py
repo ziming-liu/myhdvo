@@ -71,6 +71,7 @@ class BaseStereo(nn.Module):
             logger = get_root_logger()
             load_checkpoint(
                 self, self.pretrained, strict=False, logger=logger)
+            print("loaded pretrained weights from", self.pretrained)
         elif self.pretrained is None:
             for m in self.modules():
                 if isinstance(m, nn.Conv2d):
