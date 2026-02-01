@@ -12,9 +12,6 @@ from .psmnet import PSMNet
 from .cascade_stereo_psmnet import *
 from .cascade_stereo_gwcnet import *
 from .crestereo import CREStereo
-from .pixelnet import PixelNet
-from .pixelnet2 import PixelNet2
-from .pixelnet_slowfast4 import PixelNetSlowFast4
 from .igevstereo import IGEVStereo
 from .stereonet import StereoNet
 from .coex import CoEx

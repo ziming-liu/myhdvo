@@ -1,10 +1,11 @@
 '''
-Developer: ACENTAURI team, INRIA institute
-Author: Ziming Liu
-Date: 2024-01-28
-LastEditors: Assistant
-LastEditTime: 2024-01-28
-Description: VKitti2 Dataset Loader for Visual Odometry
+VKitti2 Dataset Loader for Visual Odometry
+
+This module provides a dataset loader for the Virtual KITTI 2 (VKitti2) dataset,
+designed for stereo visual odometry tasks.
+
+Authors: ACENTAURI team, INRIA
+License: See LICENSE file in the root directory
 '''
 import os.path as osp
 import os
@@ -165,7 +166,8 @@ class VKitti2Dataset(BaseDataset):
         
         # Load annotations
         self.video_infos = self.load_annotations()
-        print(f"Loaded {len(self.video_infos)} sequences from VKitti2 (total from {len(self.ann_files)} annotation file(s))")
+        print_log(f"Loaded {len(self.video_infos)} sequences from VKitti2 "
+                 f"({len(self.ann_files)} annotation file(s))", logger='current')
 
     def load_annotations(self):
         """Load annotations from JSON file(s) or scan directory."""
@@ -174,7 +176,7 @@ class VKitti2Dataset(BaseDataset):
         # Load from multiple annotation files
         for ann_file in self.ann_files:
             if osp.exists(ann_file):
-                print(f"Loading annotations from {ann_file}")
+                print_log(f"Loading annotations from {ann_file}", logger='current')
                 rawdata = mmcv.load(ann_file)
                 num_ = len(rawdata)
                 
@@ -204,7 +206,7 @@ class VKitti2Dataset(BaseDataset):
                                                    'fog', 'morning', 'overcast', 'rain', 'sunset']:
                             current_variation = potential_variation
                 
-                print(f"Using scene={current_scene}, variation={current_variation}")
+                print_log(f"Processing scene={current_scene}, variation={current_variation}", logger='current')
                 
                 # Load intrinsics from VKitti2 intrinsic.txt file
                 intrinsic_path = osp.join(self.data_prefix, current_scene, current_variation, 'intrinsic.txt')
@@ -216,20 +218,8 @@ class VKitti2Dataset(BaseDataset):
                     )
                     focal_length = K_left[0, 0]
                 else:
-                    raise ValueError(f"Warning: Intrinsic file {intrinsic_path} not found, using default values")
-                    # # Fallback to default scaled values
-                    # scale_w = self.target_size[0] / self.RAW_IMG_WIDTH
-                    # scale_h = self.target_size[1] / self.RAW_IMG_HEIGHT
-                    # focal_length = 725.0087 * scale_w
-                    # cx = 620.5 * scale_w
-                    # cy = 187.0 * scale_h
-                    
-                    # K_left = np.array([
-                    #     [focal_length, 0, cx],
-                    #     [0, focal_length, cy],
-                    #     [0, 0, 1]
-                    # ], dtype=np.float32)
-                    # K_right = K_left.copy()
+                    raise FileNotFoundError(f"Intrinsic file not found: {intrinsic_path}. "
+                                          f"Please ensure VKitti2 dataset is properly structured.")
                 
                 for i in range(num_):
                     path = {}
@@ -274,10 +264,8 @@ class VKitti2Dataset(BaseDataset):
                     
                     infos.append(path)
             else:
-                raise ValueError(f"Annotation file {ann_file} not found, cannot load annotations.")
-                # If annotation file doesn't exist, scan directory
-                print(f"Annotation file {ann_file} not found. Scanning directory...")
-                infos.extend(self._scan_directory())
+                raise FileNotFoundError(f"Annotation file not found: {ann_file}. "
+                                      f"Please check the path and ensure the file exists.")
         
         if self.end_id != -1:
             return infos[:self.end_id]
@@ -304,21 +292,9 @@ class VKitti2Dataset(BaseDataset):
                 self.target_size[0]   # width
             )
             focal_length = K_left[0, 0]
-        # else:
-        #     print(f"Warning: Intrinsic file {intrinsic_path} not found, using default values")
-        #     # Fallback to default scaled values
-        #     scale_w = self.target_size[0] / self.RAW_IMG_WIDTH
-        #     scale_h = self.target_size[1] / self.RAW_IMG_HEIGHT
-        #     focal_length = 725.0087 * scale_w
-        #     cx = 620.5 * scale_w
-        #     cy = 187.0 * scale_h
-            
-        #     K_left = np.array([
-        #         [focal_length, 0, cx],
-        #         [0, focal_length, cy],
-        #         [0, 0, 1]
-        #     ], dtype=np.float32)
-        #     K_right = K_left.copy()
+        else:
+            raise FileNotFoundError(f"Intrinsic file not found: {intrinsic_path}. "
+                                  f"Please ensure VKitti2 dataset is properly structured.")
         
         # Get list of left images
         left_img_dir = osp.join(scene_path, 'rgb', 'Camera_0')
@@ -525,10 +501,10 @@ class VKitti2Dataset(BaseDataset):
         
         # Pose evaluation if pose predictions are available
         if len(results) > 4 and len(results[4]) > 0:
-            print("### VKitti2 POSE EVALUATION ###")
+            print_log("\n=== VKitti2 Pose Evaluation ===", logger=logger)
             if eval_config is not None:  # have prediction of pose
-                # save pred pose into .txt with kitti format
-                print("save pred pose into .txt with kitti format")
+                # Save predicted poses in KITTI format
+                print_log("Saving predicted poses in KITTI format...", logger=logger)
                 pred_relative_pose_list = results[4].copy()
                 pred_abs_pose_list = pose_relative2absolute(pred_relative_pose_list)
                 time_str = '_'.join(time.asctime(time.localtime()).split(' '))
@@ -536,10 +512,9 @@ class VKitti2Dataset(BaseDataset):
                 result_dir = osp.join(eval_config["cfg"].work_dir, 
                                         f"pred_poses_{self.test_seq_id}_" + time_str + str(random.randrange(10000, 19999)))
                 pred_pose_path = osp.join(result_dir, f"{self.test_seq_id}.txt")
-                print(f"save pred pose into {pred_pose_path}")
                 if not osp.exists(result_dir):
                     os.makedirs(result_dir)
-                print(f"num of pose {len(pred_abs_pose_list)}")
+                print_log(f"Saving {len(pred_abs_pose_list)} predicted poses to {pred_pose_path}", logger=logger)
                 with open(pred_pose_path, 'w') as f:
                     for p_idx in range(len(pred_abs_pose_list)):
                         str_pose = [str(pp) for pp in pred_abs_pose_list[p_idx].reshape(-1)[:12].tolist()]
@@ -558,44 +533,7 @@ class VKitti2Dataset(BaseDataset):
                             str_pose = [str(pp) for pp in gt_abs_pose_list[p_idx].reshape(-1)[:12].tolist()]
                             f.write(' '.join(str_pose) + '\n')
                     
-                    print(f"Saved GT poses to {gt_pose_path}")
-                    
-                    # Apply SIM3 alignment and save aligned poses
-                    # print("\n### Applying SIM3 alignment to predicted poses ###")
-                    # pred_xyz = np.array([pose[:3, 3] for pose in pred_abs_pose_list])
-                    # gt_xyz = np.array([pose[:3, 3] for pose in gt_abs_pose_list])
-                    
-                    # aligned_pred_xyz, scale, R, t = self._align_trajectory_sim3(pred_xyz, gt_xyz)
-                    # print(f"SIM3 alignment - Scale factor: {scale:.6f}")
-                    
-                    # # Create aligned pose matrices
-                    # pred_abs_pose_list_aligned = []
-                    # for p_idx in range(len(pred_abs_pose_list)):
-                    #     aligned_pose = pred_abs_pose_list[p_idx].copy()
-                    #     # Apply rotation and scale to translation
-                    #     aligned_pose[:3, 3] = aligned_pred_xyz[p_idx]
-                    #     # Apply rotation to rotation part
-                    #     aligned_pose[:3, :3] = R @ aligned_pose[:3, :3]
-                    #     pred_abs_pose_list_aligned.append(aligned_pose)
-                    
-                    # # Save aligned poses
-                    # result_dir_aligned = osp.join(eval_config["cfg"].work_dir, 
-                    #                                 f"pred_poses_{self.test_seq_id}_aligned_sim3_" + time_str + str(random.randrange(10000, 19999)))
-                    # if not osp.exists(result_dir_aligned):
-                    #     os.makedirs(result_dir_aligned)
-                    # pred_pose_path_aligned = osp.join(result_dir_aligned, f"{self.test_seq_id}.txt")
-                    
-                    # with open(pred_pose_path_aligned, 'w') as f:
-                    #     for p_idx in range(len(pred_abs_pose_list_aligned)):
-                    #         str_pose = [str(pp) for pp in pred_abs_pose_list_aligned[p_idx].reshape(-1)[:12].tolist()]
-                    #         f.write(' '.join(str_pose) + '\n')
-                    
-                    # print(f"Saved SIM3-aligned poses to {pred_pose_path_aligned}")
-                    # print(f"Number of aligned poses: {len(pred_abs_pose_list_aligned)}")
-                    
-                    # # evaluate pose estimation
-                    # print(f"Evaluating pose for sequence {self.test_seq_id}")
-                    # print(f"Evaluate result in {result_dir}")
+                    print_log(f"Saved {len(gt_abs_pose_list)} ground truth poses to {gt_pose_path}", logger=logger)
                     
                     # Import evaluation tools
                     try:
@@ -628,31 +566,6 @@ class VKitti2Dataset(BaseDataset):
                         }
                         pose_eval = kittiOdomEval(dict_tool2)
                         pose_eval.eval(toCameraCoord=dict_tool2['toCameraCoord'])
-                        
-                        # print(f"\n{'='*70}")
-                        # print(f"=== SIM3-ALIGNED Pose Evaluation for {self.test_seq_id} ===")
-                        # print(f"{'='*70}")
-                        
-                        # # Evaluate aligned poses
-                        # print(f"\n--- Evaluation Tool 1: KittiEvalOdom (SIM3-Aligned) ---")
-                        # eval_tool_aligned = KittiEvalOdom(dataset_type='vkitti2')
-                        # eval_tool_aligned.eval(
-                        #     gt_dir,
-                        #     result_dir_aligned,
-                        #     alignment='6dof',  # Already aligned, so no additional alignment
-                        #     seqs=[self.test_seq_id],
-                        #     plot_keys=[str(self.test_seq_id) + "_sim3_aligned_" + str(time.time())]
-                        # )
-                        
-                        # print(f"\n--- Evaluation Tool 2: kittiOdomEval (SIM3-Aligned) ---")
-                        # dict_tool2_aligned = {
-                        #     "gt_dir": gt_dir, 
-                        #     "result_dir": result_dir_aligned, 
-                        #     "eva_seqs": [str(self.test_seq_id)],
-                        #     "toCameraCoord": False
-                        # }
-                        # pose_eval_aligned = kittiOdomEval(dict_tool2_aligned)
-                        # pose_eval_aligned.eval(toCameraCoord=dict_tool2_aligned['toCameraCoord'])
                         
                         print(f"\n{'='*70}")
                         print(f"=== All Pose Evaluations Completed for {self.test_seq_id} ===")

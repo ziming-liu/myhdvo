@@ -1,35 +1,23 @@
-'''
+"""
+DDVO (Direct Deep Visual Odometry) Pose Head.
+
+This module implements a pose estimation head using DDVO for visual odometry
+with photometric and structural losses.
+
 Developer: ACENTAURI team, INRIA institute
 Author: Ziming Liu
-Date: 2023-07-06 14:09:51
-LastEditors: Ziming Liu
-LastEditTime: 2024-02-07 12:41:42
-'''
+Date: 2023-07-06
+Last Modified: 2024-02-07
+"""
+
+import cv2
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torchvision
-from mmcv.runner import _load_checkpoint, load_checkpoint
-from mmcv.cnn import ConvModule, constant_init, kaiming_init
-from ...utils import get_root_logger
-from mmcv.runner import auto_fp16
-import warnings
-import torch.distributed as dist
-from abc import ABCMeta, abstractmethod
-from collections import OrderedDict
-from ..builder import build_backbone, build_neck, build_disp_predictor,build_loss,build_head,build_visual_odometry
 
+from ..builder import build_loss, build_visual_odometry
 from ..registry import HEADS
-
-from ..losses import DispL1Loss
- 
-from ...core.visulization import vis_depth_tensor,vis_img_tensor
-from ..utils.inverse_warp_3d import inverse_warp_3d
-import time 
-from ..utils.temporal_warping import temporal_warp_c2r,  temporal_warp_r2c, temporal_warp_core
-from ..utils.stereo_warping import stereo_warp_r2l, stereo_warp_l2r
-import cv2
+from ..utils.temporal_warping import temporal_warp_core
 
 #from ..visual_odometry.pose_transform import *
 
@@ -53,11 +41,24 @@ _AXES2TUPLE = {
 
 _TUPLE2AXES = dict((v, k) for k, v in _AXES2TUPLE.items())
 
+
 def euler_from_matrix(matrix, axes='szxy'):
+    """Extract Euler angles from rotation matrix.
+    
+    Args:
+        matrix: 4x4 or 3x3 transformation/rotation matrix.
+        axes (str): Axis specification string. Defaults to 'szxy'.
+        
+    Returns:
+        Tensor: Euler angles [ax, ay, az].
+        
+    Raises:
+        ValueError: If axes string is invalid.
+    """
     try:
         firstaxis, parity, repetition, frame = _AXES2TUPLE[axes.lower()]
     except (AttributeError, KeyError):
-        raise ValueError("Invalid axes value")  # Add proper error handling
+        raise ValueError("Invalid axes value")
 
     i = firstaxis
     j = _NEXT_AXIS[i + parity]
@@ -96,6 +97,21 @@ def euler_from_matrix(matrix, axes='szxy'):
     
 @HEADS.register_module()
 class PoseDDVOHead(nn.Module):
+    """Direct Deep Visual Odometry pose estimation head.
+    
+    This head uses DDVO for pose estimation with photometric and structural
+    consistency losses through temporal warping.
+    
+    Args:
+        ddvo (dict): DDVO configuration.
+        photo_loss (dict, optional): Photometric loss configuration.
+        struct_loss (dict, optional): Structural loss configuration.
+        loss_weights (list): Weights for multi-scale losses. 
+            Defaults to [1, 1.25, 1.5, 1.75, 2.0].
+        grid_sample_type (str): Grid sampling type. Defaults to 'pytorch'.
+        padding_mode (str): Padding mode for warping. Defaults to 'zeros'.
+    """
+    
     def __init__(self, 
                  ddvo,
                  photo_loss = None,

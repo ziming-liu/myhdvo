@@ -1,11 +1,3 @@
-'''
-Developer: ACENTAURI team, INRIA institute
-Author: Ziming Liu
-Date: 2021-04-25 13:10:00
-LastEditors: Ziming Liu
-LastEditTime: 2023-07-06 16:10:05
-'''
-
 import warnings
 
 import torch.nn as nn
@@ -14,7 +6,7 @@ from mmcv.utils import Registry, build_from_cfg
 from hdvo.utils import import_module_error_func
 from .registry import BACKBONES, COST_AGGREGATORS, COST_PROCESSORS, DISP_PREDICTORS, HEADS, LOSSES, NECKS, STEREO_PREDICTOR, MASKS, GEOMETRY, MONO_PREDICTOR, VISUAL_ODOMETRY, HYBRID_METHOD
 
- 
+
 def build(cfg, registry, default_args=None):
     """Build a module.
 
@@ -66,7 +58,6 @@ def build_cost_aggregator(cfg):
 def build_disp_predictor(cfg):
     """Build cost processor modules ."""
     return build(cfg, DISP_PREDICTORS)
- 
 
 
 def build_loss(cfg):
@@ -101,7 +92,7 @@ def build_stereo_predictor(cfg,train_cfg=None, test_cfg=None):
 def build_mono_predictor(cfg,train_cfg=None, test_cfg=None):
     """Build monocular_predictor."""
     return build(cfg, MONO_PREDICTOR, dict(train_cfg=train_cfg, test_cfg=test_cfg))
- 
+
 def build_visual_odometry(cfg):
     """Build visual_odometry."""
     return build(cfg, VISUAL_ODOMETRY)

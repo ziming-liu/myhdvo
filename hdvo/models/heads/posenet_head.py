@@ -1,20 +1,38 @@
-'''
+"""
+PoseNet Head Module.
+
+This module implements a pose estimation network head for predicting
+camera motion (rotation and translation) between frames.
+
+Reference: https://github.com/nianticlabs/monodepth2
+
 Developer: ACENTAURI team, INRIA institute
-Author: 
-Date: 2023-06-24 22:53:29
-LastEditors: Ziming Liu
-LastEditTime: 2023-10-04 22:46:47
-Description: refer to https://github.com/nianticlabs/monodepth2/blob/master/networks/pose_decoder.py
-'''
+Author: Ziming Liu
+Date: 2023-06-24
+Last Modified: 2023-10-04
+"""
+
+from collections import OrderedDict
 
 import torch
 import torch.nn as nn
-from collections import OrderedDict
 
 from ..registry import HEADS
 
 @HEADS.register_module()
 class PoseNetHead(nn.Module):
+    """Pose estimation network head.
+    
+    Predicts camera pose (rotation and translation) between consecutive frames.
+    
+    Args:
+        num_ch_enc (list): Number of channels at each encoder level.
+        num_input_features (int): Number of input feature maps.
+        num_frames_to_predict_for (int, optional): Number of frames to predict
+            pose for. Defaults to num_input_features - 1.
+        stride (int): Convolution stride. Defaults to 1.
+    """
+    
     def __init__(self, num_ch_enc, num_input_features, num_frames_to_predict_for=None, stride=1):
         super(PoseNetHead, self).__init__()
 
@@ -36,12 +54,18 @@ class PoseNetHead(nn.Module):
         self.net = nn.ModuleList(list(self.convs.values()))
 
     def forward(self, input_features):
-        #last_features = [f[-1] for f in input_features]
-         
-        #cat_features = [self.relu(self.convs["squeeze"](f)) for f in last_features]
-        #cat_features = torch.cat(cat_features, 1)
+        """Forward pass for pose prediction.
+        
+        Args:
+            input_features: Input feature maps from encoder.
+            
+        Returns:
+            tuple: (axisangle, translation) where:
+                - axisangle: Rotation as axis-angle representation.
+                - translation: 3D translation vector.
+        """
         out = self.relu(self.convs["squeeze"](input_features[-1]))
-        #out = cat_features
+        
         for i in range(3):
             out = self.convs[("pose", i)](out)
             if i != 2:
@@ -49,7 +73,6 @@ class PoseNetHead(nn.Module):
 
         out = out.mean(3).mean(2)
 
-        #out = 0.01 * out.view(-1, self.num_frames_to_predict_for, 1, 6)
         out = out.view(-1, self.num_frames_to_predict_for, 1, 6)
         axisangle = out[..., :3]
         translation = out[..., 3:]
@@ -57,14 +80,23 @@ class PoseNetHead(nn.Module):
         return axisangle, translation
 
     def loss(self, axisangle, translation, axisangle_gt, translation_gt, weights=None):
-       '''
-       Description: Supervised pose loss
-       Args:: 
-       Returns:: 
-       '''        
-       if weights is None:
-           weights = [100, 100, 100, 1, 1, 1]
-       assert len(weights) == 6
-       weights = torch.tensor(weights).to(axisangle.device).float()
-       loss = torch.mean(weights * torch.abs(axisangle - axisangle_gt) ** 2) + torch.mean(weights * torch.abs(translation - translation_gt) ** 2)
-       return loss
+        """Compute supervised pose loss.
+        
+        Args:
+            axisangle: Predicted rotation (axis-angle).
+            translation: Predicted translation.
+            axisangle_gt: Ground truth rotation.
+            translation_gt: Ground truth translation.
+            weights (list, optional): Loss weights for each dimension.
+                Defaults to [100, 100, 100, 1, 1, 1].
+                
+        Returns:
+            Tensor: Weighted pose loss.
+        """
+        if weights is None:
+            weights = [100, 100, 100, 1, 1, 1]
+        assert len(weights) == 6
+        weights = torch.tensor(weights).to(axisangle.device).float()
+        loss = torch.mean(weights * torch.abs(axisangle - axisangle_gt) ** 2) + \
+               torch.mean(weights * torch.abs(translation - translation_gt) ** 2)
+        return loss

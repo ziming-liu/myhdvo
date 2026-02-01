@@ -1,34 +1,41 @@
-'''
-Author: 
-Date: 2022-07-07 23:19:32
-LastEditors: Ziming Liu
-LastEditTime: 2024-02-08 17:04:11
-Description: refer to https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark 
-Dependent packages: don't need any extral dependency
-'''
+"""
+PSMNet-based Stereo Matching Head.
+
+This module implements various PSMNet-based stereo matching heads with
+different cost aggregation and upsampling strategies.
+
+Reference: https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark
+
+Author: Ziming Liu
+Date: 2022-07-07
+Last Modified: 2024-02-08
+"""
+
 from abc import abstractmethod
+
+import torch
 import torch.nn as nn
-import torch 
 import torch.nn.functional as F
 
-from hdvo.models.utils.inverse_warp_3d import inverse_warp_3d
-from hdvo.models.backbones.psmnet_base  import conv3d_bn, conv3d_bn_relu
-from .cost_processors.utils.hourglass import Hourglass,HourglassFPN,HourglassFPN_2plus1D,HourglassFPN_treble1D
+from hdvo.models.backbones.psmnet_base import conv3d_bn, conv3d_bn_relu
 
-from .cost_processors.utils.cat_fms import CAT_FUNCS
-from .cost_processors.utils.dif_fms import DIF_FUNCS
-#from .cost_processors.utils.correlation1d_cost import COR_FUNCS
-from ..builder import build_cost_aggregator,build_loss
-
+from ..builder import build_cost_aggregator, build_loss
 from ..registry import HEADS
 from .base_stereo_head import BaseStereoHead
+from .cost_processors.utils.hourglass import Hourglass
 
 class LayerNorm(nn.Module):
-    r""" LayerNorm that supports two data formats: channels_last (default) or channels_first. 
-    The ordering of the dimensions in the inputs. channels_last corresponds to inputs with 
-    shape (batch_size, height, width, channels) while channels_first corresponds to inputs 
-    with shape (batch_size, channels, height, width).
+    """Layer Normalization supporting multiple data formats.
+    
+    Supports both channels_last (NHWC) and channels_first (NCHW) formats.
+    
+    Args:
+        normalized_shape (int): Number of features to normalize.
+        eps (float): Small value to avoid division by zero. Defaults to 1e-6.
+        data_format (str): Either 'channels_last' or 'channels_first'.
+            Defaults to 'channels_last'.
     """
+    
     def __init__(self, normalized_shape, eps=1e-6, data_format="channels_last"):
         super().__init__()
         self.weight = nn.Parameter(torch.ones(normalized_shape))
@@ -40,6 +47,14 @@ class LayerNorm(nn.Module):
         self.normalized_shape = (normalized_shape, )
     
     def forward(self, x):
+        """Apply layer normalization.
+        
+        Args:
+            x: Input tensor.
+            
+        Returns:
+            Normalized tensor.
+        """
         if self.data_format == "channels_last":
             return F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
         elif self.data_format == "channels_first":
@@ -50,12 +65,28 @@ class LayerNorm(nn.Module):
             return x
 
 class LearnableUpsamplingLayer(nn.Module):
+    """2D learnable upsampling layer with residual connection.
+    
+    Args:
+        channel_dim (int): Number of input/output channels.
+        expansion (int): Channel expansion factor. Defaults to 64.
+    """
+    
     def __init__(self, channel_dim, expansion=64,  ):
         super().__init__()
         self.conv1 = nn.Conv2d(channel_dim, expansion*channel_dim, 3, 1, 1)
         self.conv2 = nn.Conv2d(expansion*channel_dim, channel_dim, 3, 1, 1)
 
     def forward(self, x, target_size):
+        """Forward pass with learnable upsampling.
+        
+        Args:
+            x: Input tensor [B, C, H, W].
+            target_size: Target spatial size (H', W').
+            
+        Returns:
+            Upsampled tensor [B, C, H', W'].
+        """
         B, C, H, W = x.shape
         x_ = F.interpolate(x, size=target_size, mode="bilinear")
 
@@ -67,11 +98,31 @@ class LearnableUpsamplingLayer(nn.Module):
         return out
 
 class LearnableUpsamplingLayer3D(nn.Module):
+    """3D learnable upsampling layer with residual connection.
+    
+    Args:
+        channel_dim (int): Number of input/output channels.
+        expansion (int): Channel expansion factor. Defaults to 4.
+        kernel_size (int): Convolution kernel size. Defaults to 3.
+        stride (int): Convolution stride. Defaults to 1.
+        padding (int): Convolution padding. Defaults to 1.
+    """
+    
     def __init__(self, channel_dim, expansion=4, kernel_size=3, stride=1, padding=1 ):
         super().__init__()
         self.conv1 = nn.Conv3d(channel_dim, channel_dim*expansion, kernel_size, stride, padding)
         self.conv2 = nn.Conv3d(channel_dim*expansion, channel_dim,  kernel_size, stride, padding)
+        
     def forward(self, x, target_size):
+        """Forward pass with 3D learnable upsampling.
+        
+        Args:
+            x: Input tensor [B, C, D, H, W].
+            target_size: Target size (D', H', W').
+            
+        Returns:
+            Upsampled tensor [B, C, D', H', W'].
+        """
         B, C, D, H, W = x.shape
         assert len(target_size)==3
         x_ = F.interpolate(x, size=target_size, mode="trilinear")
@@ -84,17 +135,39 @@ class LearnableUpsamplingLayer3D(nn.Module):
         return out
 
 class LearnableUpsamplingLayer3Dv2(nn.Module):
-    """ rewrite the structure v2, use popular depth-wise+point-wise conv + layernorm, GeLU """
+    """Improved 3D learnable upsampling with depth-wise and point-wise convolutions.
+    
+    Uses depth-wise + point-wise convolution with batch normalization.
+    
+    Args:
+        in_channels (int): Number of input channels.
+        latent_channels (int): Number of latent channels.
+        kernel_size (int): Convolution kernel size. Defaults to 3.
+        stride (int): Convolution stride. Defaults to 1.
+        padding (int): Convolution padding. Defaults to 1.
+    """
+    
     def __init__(self, in_channels, latent_channels, kernel_size=3, stride=1, padding=1 ):
         super().__init__()
-        self.conv_in = nn.Sequential(   nn.Conv3d(in_channels, latent_channels, 1, 1, 0),
-                                        nn.BatchNorm3d(latent_channels),
-                                        nn.ReLU(),
-                                        nn.Conv3d(latent_channels, latent_channels, 3, 1, 1),
-                                        nn.BatchNorm3d(latent_channels),
+        self.conv_in = nn.Sequential(
+            nn.Conv3d(in_channels, latent_channels, 1, 1, 0),
+            nn.BatchNorm3d(latent_channels),
+            nn.ReLU(),
+            nn.Conv3d(latent_channels, latent_channels, 3, 1, 1),
+            nn.BatchNorm3d(latent_channels),
         )
         self.conv_out = nn.Conv3d(latent_channels, in_channels, 3, 1, 1)
+        
     def forward(self, x, target_size):
+        """Forward pass with improved 3D upsampling.
+        
+        Args:
+            x: Input tensor [B, C, D, H, W].
+            target_size: Target size (D', H', W').
+            
+        Returns:
+            Upsampled tensor [B, C, D', H', W'].
+        """
         B, C, D, H, W = x.shape
         assert len(target_size)==3
         

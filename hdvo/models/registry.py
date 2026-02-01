@@ -1,11 +1,3 @@
-'''
-Author: Ziming Liu
-Date: 2021-04-25 13:09:26
-LastEditors: Ziming Liu
-LastEditTime: 2023-06-24 00:12:18
-Description: ...
-Dependent packages: don't need any extral dependency
-'''
 from mmcv.utils import Registry
 
 BACKBONES = Registry('backbone')

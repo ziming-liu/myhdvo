@@ -1,11 +1,3 @@
-'''
-Author: Ziming Liu
-Date: 2022-07-08 00:04:48
-LastEditors: Ziming Liu
-LastEditTime: 2023-07-19 13:02:00
-Description: refer to https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark 
-Dependent packages: don't need any extral dependency
-'''
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 import torch
@@ -16,17 +8,11 @@ from mmcv.cnn import ConvModule, constant_init, kaiming_init
 from ...utils import get_root_logger
 from mmcv.runner import auto_fp16
 import warnings
-import torch
 import torch.distributed as dist
-import torch.nn as nn
-from mmcv.runner import auto_fp16
 from .. import builder
-import warnings
 
 from ..builder import build_backbone, build_head, build_neck, build_loss
-
 from ..registry import STEREO_PREDICTOR
-
 from ..losses import DispL1Loss
 
 @STEREO_PREDICTOR.register_module()
@@ -214,17 +200,11 @@ class BaseStereo(nn.Module):
         keys = list(data_batch.keys())
         keys.remove('left_imgs')
         keys.remove('right_imgs')
-        #keys.remove('pose')
         for item in keys:
             aux_info[item] = data_batch[item]
         losses = self(left_imgs, right_imgs, return_loss=True, **aux_info)
 
         loss, log_vars = self._parse_losses(losses)
-        
-        # print gradient of network
-        #for name, parms in self.named_parameters():
-        #    print('-->name:', name, '-->grad_requirs:',parms.requires_grad,  )
-        #    print(' -->grad_value: \n {}'.format(parms.grad))
 
         outputs = dict(
             loss=loss,
@@ -241,22 +221,14 @@ class BaseStereo(nn.Module):
         not implemented with this method, but an evaluation hook.
         """
         left_imgs, right_imgs = data_batch['left_imgs'], data_batch['right_imgs']
-        #label = data_batch['pose']
 
         aux_info = {}
-        #for item in self.aux_info:
-        #    aux_info[item] = data_batch[item]
         keys = list(data_batch.keys())
         keys.remove('left_imgs')
         keys.remove('right_imgs')
-        #keys.remove('pose')
         for item in keys:
             aux_info[item] = data_batch[item]
-
             
         outputs = self(left_imgs, right_imgs, return_loss=False, **aux_info)
 
-
         return outputs
-
-    

@@ -1,40 +1,57 @@
-'''
-Author: 
-Date: 2022-07-07 23:19:32
-LastEditors: Ziming Liu
-LastEditTime: 2023-03-29 22:23:38
-Description: refer to https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark 
-Dependent packages: don't need any extral dependency
-'''
+"""
+GWC-Net Stereo Matching Head.
+
+This module implements the Group-wise Correlation (GWC) stereo matching head
+with hourglass cost aggregation.
+
+Reference: https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark
+
+Author: Ziming Liu
+Date: 2022-07-07
+Last Modified: 2023-03-29
+"""
+
 from abc import abstractmethod
+
+import torch
 import torch.nn as nn
-import torch 
 import torch.nn.functional as F
 
-from hdvo.models.utils.inverse_warp_3d import inverse_warp_3d
-from hdvo.models.backbones.psmnet_base  import conv3d_bn, conv3d_bn_relu
-from .cost_processors.utils.hourglass import Hourglass,HourglassFPN,HourglassFPN_2plus1D,HourglassFPN_treble1D
+from hdvo.models.backbones.psmnet_base import conv3d_bn, conv3d_bn_relu
 
-from .cost_processors.utils.cat_fms import CAT_FUNCS
-from .cost_processors.utils.dif_fms import DIF_FUNCS
-#from .cost_processors.utils.correlation1d_cost import COR_FUNCS
-from ..builder import build_cost_aggregator,build_loss
-
+from ..builder import build_cost_aggregator, build_loss
 from ..registry import HEADS
 from .base_stereo_head import BaseStereoHead
-from ..stereo_predictor.cascade_stereo_gwcnet import *
+from .cost_processors.utils.hourglass import Hourglass
+from ..stereo_predictor.cascade_stereo_gwcnet import *  # noqa: F401, F403
 
 
 
 # Concatenate left and right feature to form cost volume
 @HEADS.register_module()
 class GWCNetHead(BaseStereoHead):
+    """Group-wise Correlation Network head for stereo matching.
+    
+    This head implements group-wise correlation stereo matching with
+    hourglass-based cost aggregation and optional local disparity prediction.
+    
+    Args:
+        in_channels (int): Number of input feature channels.
+        disp_range (tuple): Disparity range (start, max, dilation).
+        alpha (float): Scaling factor for cost volume.
+        normalize (bool): Whether to apply softmax normalization.
+        gwc_num_groups (int): Number of groups for group-wise correlation.
+            Defaults to 32.
+        cat_channels (int): Number of channels for concatenation features.
+            Defaults to 64.
+        losses (dict, optional): Loss function configuration.
+        local_predictor (bool): Whether to use local disparity predictor.
+            Defaults to False.
+        **kwargs: Additional arguments passed to BaseStereoHead.
+    """
+    
     def __init__(self, in_channels, disp_range, alpha, normalize,
                    gwc_num_groups=32, cat_channels=64, losses=None, local_predictor=False, **kwargs):
-        '''
-        description: 
-        return: {*}
-        '''        
         super(GWCNetHead, self).__init__(in_channels, disp_range, alpha, normalize, losses, **kwargs)
         self.in_channels = in_channels
         self.gwc_num_groups = gwc_num_groups

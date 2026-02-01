@@ -8,7 +8,7 @@ Inference and evaluate the results with this command.
 
 ```
 
-OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=$num_gpu --master_port=12860 \
+torchrun --standalone --nnodes=1 --nproc_per_node=$num_gpu --master_port=12860 \
   tools/test.py $config_file.py \
    $pretrained_checkpoint_file.pth   \
     --launcher pytorch   --save_depth($optional)
@@ -21,7 +21,7 @@ Install [`torchsummaryX`](https://github.com/nmhkahn/torchsummaryX) firstly.
 
 ```
 
-OMP_NUM_THREADS=12 torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12200 \
+torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12200 \
   tools/test_flops_counter.py $config_file.py \
    $checkpoint_file.pth   \
     --launcher pytorch --input_size 544,960($image_size)

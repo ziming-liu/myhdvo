@@ -1,16 +1,10 @@
-"""
-Save to /home/ziliu/mydata/kitti_odometry/kitti_odometry_train.json
-1590it [00:00, 240634.46it/s]
-Save to /home/ziliu/mydata/kitti_odometry/kitti_odometry_test_09.json
-1200it [00:00, 239378.14it/s]
-Save to /home/ziliu/mydata/kitti_odometry/kitti_odometry_test_10.json
-"""
+
 
 import os.path as osp
  
 batch_size = 1
-# root2 = "/home/ziliu/mydata"
-raw_kitti_root = "/fs/projects/SGH_CR_RIX/Kitti-Dataset"
+
+raw_kitti_root = "data_sets/Kitti-Dataset"
 
 data_root = "data_sets/kitti_odometry"
 annfile_root = osp.join("annotations", "kittiodometry")

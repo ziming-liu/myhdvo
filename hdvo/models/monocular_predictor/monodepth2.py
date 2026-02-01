@@ -50,11 +50,6 @@ class MonoDepth2(BaseMono):
         x = self.backbone(left_imgs) # x is a list of feat pyramid
         #x = self.neck(x)
         x = self.disp_head(x)
-        #vis_depth_tensor(x, "/home/ziliu/vis/monodepth3", "x")
-        #print("pred >> ")
-        ##print(x[0,0,:,100])
-        #print("gt label >>")
-        #print(kwargs[self.pred_format][0,0,:,100])
         losses = self.disp_head.loss(x, kwargs[self.pred_format])
         return losses
 

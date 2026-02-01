@@ -1,10 +1,4 @@
-<!--
- * @Developer: ACENTAURI team, INRIA institute
- * @Author: Ziming Liu
- * @Date: 2024-02-02 14:57:55
- * @LastEditors: Ziming Liu
- * @LastEditTime: 2024-02-02 16:45:08
--->
+
 # Prepare your dataset
 
 
@@ -21,29 +15,30 @@ KITTI odometry dataset can be downloaded from [official site](https://www.cvlibs
 - Download odometry ground truth poses (4 MB)
 at least. 
 
-The dataset image data is organized as 
+The dataset image data is organized as:
 
 ```
--KITTIodometry
-   |--pose_GT
-         |--00
-         |--01
-         |--...
-         |--20
-   |--sequences
-         |--00
-         |--01
-         |--...
-         |--20
+KITTIodometry/
+├── pose_GT/
+│   ├── 00/
+│   ├── 01/
+│   ├── ...
+│   └── 20/
+└── sequences/
+    ├── 00/
+    ├── 01/
+    ├── ...
+    └── 20/
 ```
 
-The annotations are put under `HDVO/annotations/`. 
+Then link kitti odometry dataset to `data_sets/kitti_doometry`.
 
-New annotations are generated with this script `tools/dataset_tools/kitti_odometry_annotation.py` 
+The annotations are put under `annotations/kittiodometry/`. 
 
-```
-import fire
-python tools/dataset_tools/kitti_odometry_annotation.py save_path name  test_mode 
+New annotations are generated with this script:
+
+```bash
+python tools/dataset_tools/kitti_odometry_annotation.py <save_path> <name> <test_mode>
 ```
 
 ## VKitti2
@@ -53,38 +48,39 @@ VKitti2 (Virtual KITTI 2) dataset can be downloaded from [official site](https:/
 The dataset is organized as:
 
 ```
--vkitti2
-   |--Scene01
-         |--clone
-         |--15-deg-left
-         |--15-deg-right
-         |--30-deg-left
-         |--30-deg-right
-         |--fog
-         |--morning
-         |--overcast
-         |--rain
-         |--sunset
-              |--frames
-                    |--rgb
-                          |--Camera_0
-                          |--Camera_1
-                    |--depth
-                          |--Camera_0
-                          |--Camera_1
-              |--intrinsic.txt
-              |--extrinsic.txt
-              |--pose.txt
-              |--bbox.txt
-              |--colors.txt
-              |--info.txt
-   |--Scene02
-   |--Scene06
-   |--Scene18
-   |--Scene20
+vkitti2/
+├── Scene01/
+│   ├── clone/
+│   ├── 15-deg-left/
+│   ├── 15-deg-right/
+│   ├── 30-deg-left/
+│   ├── 30-deg-right/
+│   ├── fog/
+│   ├── morning/
+│   ├── overcast/
+│   ├── rain/
+│   └── sunset/
+│       ├── frames/
+│       │   ├── rgb/
+│       │   │   ├── Camera_0/
+│       │   │   └── Camera_1/
+│       │   └── depth/
+│       │       ├── Camera_0/
+│       │       └── Camera_1/
+│       ├── intrinsic.txt
+│       ├── extrinsic.txt
+│       ├── pose.txt
+│       ├── bbox.txt
+│       ├── colors.txt
+│       └── info.txt
+├── Scene02/
+├── Scene06/
+├── Scene18/
+└── Scene20/
 ```
 
-The annotations are put under `HDVO/annotations/vkitti2/`. 
+
+The annotations are put under `annotations/vkitti2/`.
 
 New annotations are generated with this script `tools/dataset_tools/vkitti2_annotation.py`:
 
@@ -105,44 +101,44 @@ python test_vkitti2_loader.py
 
 ## KITTI Stereo
 
-
-KITTI odometry dataset can be downloaded from [official site](https://www.cvlibs.net/datasets/kitti/eval_odometry.php). You should 
+KITTI Stereo dataset can be downloaded from [official site](https://www.cvlibs.net/datasets/kitti/eval_scene_flow.php). You should 
 - Download stereo 2015/flow 2015/scene flow 2015 data set (2 GB)
 - Download calibration files (1 MB)
 at least. 
 
 ```
--KITTI2015
-     |--traning
-          |--image_2
-          |--image_3
-          |--...
-     |--testing
-     |--calib
-           |--training
-           |--testing
-                 |--calib_cam_to_cam
-                 |--...
-     
+KITTI2015/
+├── training/
+│   ├── image_2/
+│   ├── image_3/
+│   └── ...
+├── testing/
+└── calib/
+    ├── training/
+    └── testing/
+        ├── calib_cam_to_cam/
+        └── ...
 ```
 
-Stereo2012 version is similar. 
+Note: KITTI Stereo 2012 has a similar structure. 
 
 
-The annotations are put under `HDVO/annotations/`. 
+The annotations are put under `annotations/kittistereo2015/` and `annotations/kittistereo2012/`.
 
-New annotations are generated with this script 
+New annotations are generated with these scripts:
 
-```
+```bash
+# KITTI Stereo 2015
 python tools/dataset_tools/gen_kittistereo2015.py \
-    --data-root /home/ziliu/mydata/kittistereo2015 \
-        --save-annotation-root /home/ziliu/mydata/kittistereo2015/annotations \
-            --is-full 
+    --data-root <path_to_kittistereo2015> \
+    --save-annotation-root <path_to_annotations> \
+    --is-full
 
+# KITTI Stereo 2012
 python tools/dataset_tools/gen_kittistereo2012.py \
-    --data-root /home/ziliu/mydata/kittistereo2012/data_stereo_flow \
-        --save-annotation-root /home/ziliu/mydata/kittistereo2012/annotations \
-            --is-full 
+    --data-root <path_to_kittistereo2012>/data_stereo_flow \
+    --save-annotation-root <path_to_annotations> \
+    --is-full
 ```
 
 
@@ -156,30 +152,31 @@ Download dataest from [site](https://www.cvlibs.net/datasets/kitti/eval_depth.ph
 - Download manually selected validation and test data sets (2 GB)
 - Download development kit (48 K)
 
-This data is orgnized as 
+The data is organized as:
 
 ```
---kitti_raw_data
-           |--2011_09_26
-           |--2011_09_28
-           |--2011_09_29
-           |--2011_09_30
-           |--2011_10_03
-                 |--2011_10_03_drive_0027_sync
-                 |--...
+kitti_raw_data/
+├── 2011_09_26/
+├── 2011_09_28/
+├── 2011_09_29/
+├── 2011_09_30/
+└── 2011_10_03/
+    ├── 2011_10_03_drive_0027_sync/
+    └── ...
 ```
 
-The annotations are put under `HDVO/annotations/`. 
+Then link kitti raw data to `data_sets/Kitti-Dataset`.
 
-New annotations are generated with this script 
+The annotations are put under `annotations/`.
 
-```
-import fire
-# 3 frame each sample
-python tools/dataset_tools/kitti_eigen_annotation_len3.py  **kwargs
+New annotations are generated with these scripts:
 
-#  two frames each sample
-tools/dataset_tools/kitti_eigen_annotation.py  **kwargs
+```bash
+# 3 frames per sample
+python tools/dataset_tools/kitti_eigen_annotation_len3.py <arguments>
+
+# 2 frames per sample
+python tools/dataset_tools/kitti_eigen_annotation.py <arguments>
 ```
 
 
@@ -189,22 +186,24 @@ tools/dataset_tools/kitti_eigen_annotation.py  **kwargs
 Download SceneFlow dataset from [site](https://lmb.informatik.uni-freiburg.de/resources/datasets/SceneFlowDatasets.en.html)
 
 ```
--sceneflow
-     |--driving
-          |--frames_finalpass
-          |--frames_cleanpass
-          |--disparity
-     |--flyingthings3d
-     |--monkaa
+sceneflow/
+├── driving/
+│   ├── frames_finalpass/
+│   ├── frames_cleanpass/
+│   └── disparity/
+├── flyingthings3d/
+└── monkaa/
 ```
 
+The annotations are put under `annotations/sceneflow/`.
 
-The annotations are put under `HDVO/annotations/`. 
+New annotations are generated with this script:
 
-New annotations are generated with this script 
-
-```
-python  tools/dataset_tools/gen_sceneflow_anns.py --data-root   ../sceneflow  --save-annotation-root ../sceneflow/annotations --data-type  clean
+```bash
+python tools/dataset_tools/gen_sceneflow_anns.py \
+    --data-root <path_to_sceneflow> \
+    --save-annotation-root <path_to_annotations> \
+    --data-type clean
 ```
 
 

@@ -1,88 +1,156 @@
-<!--
- * @Developer: ACENTAURI team, INRIA institute
- * @Author: Ziming Liu
- * @Date: 2021-02-26 22:07:42
- * @LastEditors: Ziming Liu
- * @LastEditTime: 2024-02-08 17:16:34
--->
+# HDVO: Hybrid Dense Direct Visual Odometry
 
-# HDVO (Hybrid Dense Direct Visual Odometry)
+<div align="center">
 
-## Introduction
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-1.7+-orange.svg)](https://pytorch.org/)
 
-This is a codebase for hybrid methods in visual perception and localization, which has the advantage of both data-based representation and traditional model-based robustness. This project is developed at [ACENTAURI team, INRIA](https://team.inria.fr/acentauri/). 
+</div>
 
-![](docs/imgs/acentauri.png)
-![](docs/imgs/inria.png)
+<div align="center">
+  <img src="docs/imgs/inria.png" height="80"/>
+</div>
 
-## Major tasks
+<br>
 
-This code can support these tasks: 
+Official PyTorch implementation of **HDVO** from [ACENTAURI team, INRIA](https://team.inria.fr/acentauri/).
 
-- Stereo/Monocular depth estimation 
-- hybrid/deep visual odometry
+---
+
+## 🔥 News
+
+- **[2026-03]** Initial code release
+
+## ✨ Highlights
+
+- **Hybrid Architecture**: Combines data-driven deep learning with model-based geometric constraints for robust visual odometry
+- **Unified Framework**: Joint stereo depth estimation and visual odometry in a single framework
+- **State-of-the-art Performance**: Achieves competitive results on KITTI Odometry and Virtual KITTI 2 benchmarks
+- **Flexible Design**: Modular architecture allows easy integration and customization
+
+## 📋 Table of Contents
+
+- [Installation](#-installation)
+- [Dataset Preparation](#-dataset-preparation)
+- [Model Zoo](#-model-zoo)
+- [Getting Started](#-getting-started)
+- [Training](#-training)
+- [Evaluation](#-evaluation)
+- [Citation](#-citation)
+- [License](#-license)
+- [Acknowledgements](#-acknowledgements)
+- [Contact](#-contact)
+
+## 🛠️ Installation
+
+### Prerequisites
+
+- Python == 3.10
+- PyTorch == 2.0.1
+- CUDA == 11.8 (for GPU support)
+
+### Environment Setup
 
 
-## Start to use it
+```bash
+# Clone the repository
+git clone https://github.com/ziming-liu/hdvo.git
+cd hdvo
 
-Prepare the dataset according to [prepare_dataset.md](docs/prepare_dataset.md)
+# Create conda environment
+conda create -n hdvo python=3.8
+conda activate hdvo
 
-Install the running environment and dependencies [env.md](docs/env.md)
+# Install dependencies
+cat requirements.txt | while read package; do    if [ -n "$package" ] && [[ ! "$package" =~ ^#.* ]]; then      echo "Installing: $package";     pip install "$package" || echo "Skip failed packages: $package";   fi; done
 
-For the training and testing, please see [train.md](docs/train.md) and [inference.md](docs/inference.md). 
+# Install mmcv 
+cd mmcv-full-1.6.0 && python setup.py develop 
 
+# Install the package hdvo
+python install -e .
 
-## Model list
+# Install openrox 
+bash build_openrox.sh  $OPENROX_DIR  $HDVO_DIR
 
+# or use compiled openrox file
+$HDVO_DIR=/your_path
+export LD_LIBRARY_PATH=$HDVO_DIR/openrox/cmake:$LD_LIBRARY_PATH
 
-Stereo 
-
-- [StereoOne](configs/stereoone)
-- [PSMnet](configs/psmnet)
-
-
-Visual odometry
-
-- [HDVO](configs/hdvo)
-
-
-
-## Citation & References
-If you use this codebase or models in your research, please cite the following references. A technical report may be released later.
-
+# rox_odometry_module.so has been included in this repo
 ```
-@inproceedings{HDVO-IROS-2022,
-  title={A New Dense Hybrid Stereo Visual Odometry Approach},
-  author={Liu, Ziming and Malis, Ezio and Martinet, Philippe},
-  booktitle={IROS},
-  pages={6998--7003},
-  year={2022},
-  organization={IEEE}
-}
 
-@inproceedings{maskHDVO-ITSC-2023,
-  title={Multi-masks Generation for Increasing Robustness of Dense Direct Methods},
-  author={Liu, Ziming and Malis, Ezio and Martinet, Philippe},
-  booktitle={ITSC},
-  year={2023},
-  organization={IEEE}
-}
+For Nvidia Jetson Orion and Thor, pls switch to corresponding git branches.
 
-@inproceedings{StereoOne-ICASSP-2024,
-  title={StereoOne: One-stage Deep Stereo Network},
-  author={Liu, Ziming and Malis, Ezio and Martinet, Philippe},
-  booktitle={ICASSP},
-  year={2024},
-  organization={IEEE}
-}
+## 📦 Dataset Preparation
 
+We support the following datasets:
+
+- **KITTI Odometry**: For visual odometry training and evaluation
+- **Virtual KITTI 2**: For training and testing
+
+Annotations for `KITTI Odometry` has already existed under `annotations/kittiodometry`.
+
+Please refer to [prepare_dataset.md](docs/prepare_dataset.md) for detailed instructions on downloading and organizing datasets.
+
+## 🎯 Model Zoo
+
+### Stereo Depth Estimation
+
+| Model | Dataset | Config | Checkpoint |
+|-------|---------|--------|------------|
+| HDVO | KITTI Odometry | [config](configs/hdvo) | [ckp](pretrained/iter_40000.pth) |
+| HDVO | Virtual KITTI 2 | Coming soon | Coming soon
+<!-- ### Quick Demo
+
+```python
+# Coming soon
+``` -->
+
+### Inference
+
+For detailed inference instructions, please see [inference.md](docs/inference.md).
+
+
+```bash
+torchrun --standalone --nnodes=1 --nproc_per_node=1 --master_port=12860 \
+  tools/test.py configs/hdvo/stereohdvo_posesup_coex_kittiodom_huberloss.py \
+   work_dirs/stereohdvo_posesup_coex_kittiodom_huberloss/iter_40000.pth   \
+    --launcher pytorch  --test_seq_id 09 
 ```
 
+### Distributed Training
 
-Part of code is from [mmaction](https://github.com/open-mmlab/mmaction), [openrox](https://github.com/robocortex/openrox). 
+```bash
+torchrun --standalone --nnodes=1 --nproc_per_node=$NUM_GPU  \
+    tools/train.py configs/hdvo/stereohdvo_posesup_coex_kittiodom_huberloss.py \
+      --launcher pytorch 
+```
 
+## 📄 License
 
+This project is released under the [Apache 2.0 license](LICENSE).
 
-## Contact
+## 🙏 Acknowledgements
 
-If you have questions, you can contact $liuziming.email@gmail.com$. 
+This codebase is built upon several excellent open-source projects:
+
+- [MMAction](https://github.com/open-mmlab/mmaction) - Framework structure and utilities
+- [OpenRox](https://github.com/robocortex/openrox) - Computer vision algorithms
+
+We thank the authors for their great work and open-source contributions.
+
+## 📧 Contact
+
+For questions and discussions, please contact:
+
+- **Ziming Liu**: liuziming.email@gmail.com
+
+You can also open an issue in this repository for bug reports and feature requests.
+
+---
+
+<div align="center">
+Made with ❤️ by ACENTAURI team @ INRIA
+</div> 

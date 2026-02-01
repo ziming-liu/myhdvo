@@ -197,10 +197,10 @@ def save_sequence_results(outputs, args, cfg, test_seq_id, logger):
 
 def evaluate_sequence(outputs, dataset, args, cfg, test_seq_id, logger, eval_config):
     """
-    Evaluate results for a single test sequence.
+    Evaluate results for a single test sequence using independent evaluators.
     
     Args:
-        outputs: Model outputs
+        outputs: Model outputs [pred_depths, gt_depths, pred_masks, gt_masks, pred_poses, gt_poses]
         dataset: Dataset instance
         args: Command line arguments
         cfg: Config object
@@ -211,6 +211,8 @@ def evaluate_sequence(outputs, dataset, args, cfg, test_seq_id, logger, eval_con
     Returns:
         eval_results: Evaluation metrics dictionary (or None if no evaluation)
     """
+    from hdvo.evaluator import DepthEvaluator, PoseEvaluator
+    
     rank, _ = get_dist_info()
     
     if rank != 0:
@@ -222,15 +224,81 @@ def evaluate_sequence(outputs, dataset, args, cfg, test_seq_id, logger, eval_con
     
     logger.info(f"Evaluating sequence {test_seq_id}...")
     
-    eval_config["cfg"] = cfg.copy()
-    gt_depths = outputs[1] if len(outputs[1]) > 1 else None
+    eval_results = {}
     
-    eval_results = dataset.evaluate(
-        outputs, gt_depths,
-        metrics=args.eval,
-        logger=logger,
-        eval_config=eval_config
-    )
+    # ====================
+    # Depth Evaluation
+    # ====================
+    try:
+        if int(test_seq_id) <= 10:
+            all_pred_depth = outputs[0]
+            all_gt_depth = outputs[1]
+            all_multimasks = outputs[2] if len(outputs) > 2 else []
+            
+            # Get sequence directory from dataset
+            seq_dir = dataset.seq_dir if hasattr(dataset, 'seq_dir') else None
+            gt_path = cfg.data.test.get('kitti_rawdata_path', None)
+            
+            # Initialize depth evaluator
+            depth_evaluator = DepthEvaluator(
+                min_depth=1.0,
+                max_depth=80.0,
+                garg_crop=True,
+                eigen_crop=False,
+                test_kbcrop=False
+            )
+            
+            # Evaluate depth
+            if len(all_gt_depth) > 0:
+                eval_results['depth'] = depth_evaluator.evaluate(
+                    all_pred_depth, 
+                    all_gt_depth=all_gt_depth,
+                    all_multimasks=all_multimasks,
+                    seq_dir=seq_dir,
+                    logger=logger
+                )
+            else:
+                eval_results['depth'] = depth_evaluator.evaluate(
+                    all_pred_depth,
+                    all_gt_depth=None,
+                    all_multimasks=all_multimasks,
+                    seq_dir=seq_dir,
+                    gt_path=gt_path,
+                    logger=logger
+                )
+                
+    except Exception as e:
+        logger.error(f"Depth evaluation failed: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    # ====================
+    # Pose Evaluation
+    # ====================
+    if len(outputs) > 4 and len(outputs[4]) > 0:
+        try:
+            pred_relative_poses = outputs[4]
+            gt_relative_poses = outputs[5] if len(outputs) > 5 else None
+            
+            # Initialize pose evaluator
+            pose_evaluator = PoseEvaluator(
+                work_dir=cfg.work_dir,
+                test_seq_id=test_seq_id,
+                dataset_type=cfg.dataset_type,
+                apply_sim3_alignment=True
+            )
+            
+            # Evaluate poses
+            eval_results['pose'] = pose_evaluator.evaluate(
+                pred_relative_poses,
+                gt_relative_poses,
+                logger=logger
+            )
+            
+        except Exception as e:
+            logger.error(f"Pose evaluation failed: {e}")
+            import traceback
+            traceback.print_exc()
     
     logger.info(f"Completed evaluation for sequence {test_seq_id}\n")
     

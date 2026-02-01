@@ -1,21 +1,24 @@
-'''
+"""
+Monocular Disparity Head Module.
+
+This module implements a monocular disparity prediction head with optional
+learnable upsampling for depth estimation tasks.
+
 Author: Ziming Liu
-Date: 2023-02-08 21:59:31
-LastEditors: Ziming Liu
-LastEditTime: 2023-08-16 15:17:00
-Description: ...
-Dependent packages: don't need any extral dependency
-'''
+Date: 2023-02-08
+Last Modified: 2023-08-16
+"""
+
 import torch
 from torch import nn as nn
 import torch.nn.functional as F
+from mmcv.cnn import constant_init, normal_init
+from mmcv.runner import BaseModule, auto_fp16
+
 from ..builder import build_loss
-from mmcv.cnn import (build_conv_layer, build_norm_layer, build_upsample_layer,
-                      constant_init, normal_init)
 from ..registry import HEADS
 from .base_stereo_head import BaseStereoHead
-from mmcv.runner import BaseModule, auto_fp16
-from ..stereo_predictor.igevstereo_submodules.submodule import *
+from ..stereo_predictor.igevstereo_submodules.submodule import BasicConv_IN
 
 try:
     autocast = torch.cuda.amp.autocast
@@ -29,10 +32,15 @@ except:
             pass
 
 def context_upsample(disp_low, up_weights):
-    ###
-    # cv (b,1,h,w)
-    # sp (b,9,4*h,4*w)
-    ###
+    """Context-aware upsampling for disparity maps.
+    
+    Args:
+        disp_low (Tensor): Low resolution disparity, shape (B, 1, H, W).
+        up_weights (Tensor): Upsampling weights, shape (B, 9, 4*H, 4*W).
+        
+    Returns:
+        Tensor: Upsampled disparity map, shape (B, 1, 4*H, 4*W).
+    """
     b, c, h, w = disp_low.shape
         
     disp_unfold = F.unfold(disp_low.reshape(b,c,h,w),3,1,1).reshape(b,-1,h,w)
@@ -45,6 +53,23 @@ def context_upsample(disp_low, up_weights):
 
 @HEADS.register_module()
 class MonoDispHead(BaseModule):
+    """Monocular disparity prediction head.
+    
+    This head predicts disparity maps from monocular image features with
+    optional learnable upsampling.
+    
+    Args:
+        max_depth (float): Maximum depth value.
+        in_channel (int): Number of input channels.
+        losses (dict, optional): Loss function configuration.
+        latent_channel (int, optional): Number of latent channels. 
+            Defaults to in_channel.
+        out_channel (int): Number of output channels. Defaults to 1.
+        scale_factor (int): Upsampling scale factor. Defaults to 4.
+        learn_upsample (bool): Whether to use learnable upsampling. 
+            Defaults to False.
+    """
+    
     def __init__(self, max_depth,  in_channel, losses=None, latent_channel=None, out_channel=1,
                  scale_factor=4, learn_upsample=False ):
         super().__init__()
@@ -81,6 +106,14 @@ class MonoDispHead(BaseModule):
                         )
         
     def forward(self, x ):
+        """Forward pass for disparity prediction.
+        
+        Args:
+            x: Input features, can be a single tensor or tuple/list of tensors.
+            
+        Returns:
+            Tensor: Predicted disparity map with sigmoid activation.
+        """
         if isinstance(x, (list,tuple)):
             x = x[0]
         if not self.learn_upsample:
@@ -93,12 +126,20 @@ class MonoDispHead(BaseModule):
             x = context_upsample(x, spx_pred.float())
 
         x1 = self.last_layer_depth(x)
-        z = torch.sigmoid(x1) #* self.max_depth
+        z = torch.sigmoid(x1)
         
-        return z 
-        #return torch.relu(x) * self.max_depth
+        return z
     
     def loss(self, pred, gt):
+        """Compute prediction loss.
+        
+        Args:
+            pred: Predicted disparity.
+            gt: Ground truth disparity.
+            
+        Returns:
+            Loss value.
+        """
         return self.pred_loss(pred, gt)
     
  

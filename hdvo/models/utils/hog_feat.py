@@ -103,45 +103,29 @@ class HOGLayerC(nn.Module):
         res = HOGvisualized.visualize_HOG(hog,8)
         print("res shape", res.shape)
         cv2.imshow("HOG ours",res)
-        cv2.waitKey(0) # press key 0 to close the window
+        cv2.waitKey(0)
         
-        
-        tmp_hog = out[0].reshape(-1, out.shape[-2], out.shape[-1])#.permute(0,1,3,2,4).reshape(3,3*out.shape[-2], 3*out.shape[-1])
-        #tmp_hog = F.softmax(tmp_hog, dim=0)
+        tmp_hog = out[0].reshape(-1, out.shape[-2], out.shape[-1])
         tmp_hog = tmp_hog.permute(1,2,0)
         tmp_hog = (tmp_hog.sum(2)).numpy()
-        #tmp_hog = cv2.resize(tmp_hog, (x.shape[3], x.shape[2]), interpolation=cv2.INTER_NEAREST)
-        # 将特征图转换为可视化格式
         vis = np.uint8(tmp_hog)*225
         cv2.imshow('HOG features', vis)
         cv2.waitKey(0)
         """
-        return out  # B 3 nbins H W
-    
-if __name__ == '__main__':
-    
-    #hog_layer = HOGLayerC()
+        return out
 
-    #img = torch.randn(1, 3, 224, 224)
- 
+if __name__ == '__main__':
     import cv2
     import numpy as np
 
-    # 加载图像
-    #image = cv2.imread('/home/ziliu/mydata/kitti_odometry/sequences/00/image_2/001500.png')
     image = cv2.imread('/Users/ziming/Downloads/kittistereo2012/data_stereo_flow/training/colored_0/000002_11.png')
-    #image = cv2.imread('/Users/ziming/Downloads/dog.png')
     image = cv2.resize(image, (512, 224))
     cell_hogfeature = HOG.Cell_HOG(image,cell_size=(4,4))
     hog = HOG.BlockNorm_HOG(cell_hogfeature,block_size=(1,1))
-    #print(hog.shape)
     print("downsampled HOG shape: ", hog.shape)
     res = HOGvisualized.visualize_HOG(hog[:,:,:,0,0,:],cell_size=4)
     cv2.imshow("HOG feature with block normaliztion",res)
-    #print(image)
-    #image = cv2.resize(image, (512, 224))
     cv2.imshow('rgb image', image)
-    #cv2.waitKey(0)
     """ 
     from skimage.feature import hog
     from skimage import io
