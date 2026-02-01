@@ -110,11 +110,16 @@ class CoEx(nn.Module):
             self.__init_backbone_weights(pretrain_official)
 
     def __init_weights(self, pretrain):
-        load_checkpoint(self, pretrain, map_location='cpu')
+        # load_checkpoint(self, pretrain, map_location='cpu')
+        ckpt = torch.load(pretrain, weights_only=True)
+        self.load_state_dict(ckpt["state_dict"])
+
         print("load pretrain")
 
     def __init_backbone_weights(self, backbone_pretrain):
-        checkpoint = _load_checkpoint(backbone_pretrain, map_location='cpu')
+        # checkpoint = _load_checkpoint(backbone_pretrain, map_location='cpu')
+        checkpoint = torch.load(backbone_pretrain, weights_only=False)
+
         if 'state_dict' in checkpoint:
             state_dict = checkpoint['state_dict']
         else:

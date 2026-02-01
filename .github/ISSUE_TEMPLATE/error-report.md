@@ -31,10 +31,15 @@ A placeholder for the command.
 
 **Environment**
 
-1. Please run `PYTHONPATH=${PWD}:$PYTHONPATH python mmaction/utils/collect_env.py` to collect necessary environment information and paste it here.
-2. You may add addition that may be helpful for locating the problem, such as
+1. Please provide your environment information:
+    - Python version
+    - PyTorch version
+    - CUDA version (if using GPU)
+    - Operating system
+2. You may add additional information that may be helpful for locating the problem, such as:
     - How you installed PyTorch [e.g., pip, conda, source]
     - Other environment variables that may be related (such as `$PATH`, `$LD_LIBRARY_PATH`, `$PYTHONPATH`, etc.)
+    - Whether you are using Docker (THOR setup) or native installation
 
 **Error traceback**
 

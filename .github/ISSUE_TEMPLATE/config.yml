@@ -1,9 +1,9 @@
 blank_issues_enabled: false
 
 contact_links:
-  - name: Common Issues
-    url: https://mmaction2.readthedocs.io/en/latest/faq.html
-    about: Check if your issue already has solutions
-  - name: MMAction2 Documentation
-    url: https://mmaction2.readthedocs.io/en/latest/
-    about: Check if your question is answered in docs
+  - name: HDVO Documentation
+    url: https://github.com/ziming-liu/hdvo/tree/main/docs
+    about: Check the documentation folder for setup, training, and inference guides
+  - name: Contact Maintainer
+    url: mailto:liuziming.email@gmail.com
+    about: Contact the project maintainer for additional support

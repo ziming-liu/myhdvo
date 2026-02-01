@@ -417,7 +417,11 @@ def main():
         print("## didn't load checkpoint")
     else:
         print("## loading checkpoint: {}".format(args.checkpoint))
-        load_checkpoint(model, args.checkpoint, map_location='cpu')
+        # load_checkpoint(model, args.checkpoint, map_location='cpu')
+        
+        ckpt = torch.load(args.checkpoint, weights_only=True)
+        model.load_state_dict(ckpt["state_dict"])
+
         
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
@@ -437,7 +441,7 @@ def main():
         # Use torch.jit.script for better compatibility on Jetson
         # torch.compile with inductor backend requires triton which may not be available
         try:
-            import torch._dynamo
+            # import torch._dynamo
             if hasattr(torch, 'compile'):
                 print("   Using torch.compile (experimental on Jetson)...")
                 model.depth_net = torch.compile(

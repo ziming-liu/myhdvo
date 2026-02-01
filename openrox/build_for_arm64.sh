@@ -4,8 +4,8 @@
 
 set -e  # Exit on error
 
-OPENROX_DIR="/home/nvidia/ziming/hdvo/openrox"
-HDVO_DIR="/home/nvidia/ziming/hdvo"
+OPENROX_DIR="."
+HDVO_DIR="../"
 
 echo "=========================================="
 echo "Building OpenROX for ARM64"
@@ -17,7 +17,7 @@ echo "Cleaning build directory..."
 rm -rf *
 
 echo "Running CMake..."
-cmake ..
+cmake -DOPENROX_CREATE_MANUAL_PROG=OFF -DOPENROX_CREATE_MANUAL_USER=OFF ..
 
 echo "Building OpenROX library..."
 make -j$(nproc)
