@@ -125,7 +125,7 @@ benchlist.txt
 work_dirs/
 
 # Pytorch
-*.pth
+#*.pth
 
 # Profile
 *.prof
