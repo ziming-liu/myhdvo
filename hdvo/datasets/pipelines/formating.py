@@ -16,8 +16,10 @@ def to_tensor(data):
     """
     if isinstance(data, torch.Tensor):
         return data
+    if isinstance(data, np.float32):
+        return torch.FloatTensor([data])
     if isinstance(data, np.ndarray):
-        return torch.from_numpy(data)
+        return torch.from_numpy(np.array(data))
     if isinstance(data, Sequence) and not mmcv.is_str(data):
         return torch.tensor(data)
     if isinstance(data, int):
